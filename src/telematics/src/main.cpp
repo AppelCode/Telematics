@@ -65,9 +65,11 @@ void setup() {
 }
 
 void loop() {
+    /*
     if (awsiot.isConnected()) {
         awsiot.loop();
     }
+    */
     delay(200);
 }
 
