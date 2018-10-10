@@ -6,6 +6,7 @@
 // This will load the definition for common Particle variable types
 #include "Particle.h"
 #include "AWS.h"
+#include "Crypt.h"
 
 // This is your main class that users will import into their application
 class CarT

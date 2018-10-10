@@ -67,6 +67,7 @@ sample code bearing this copyright.
 #include "mbedtls/timing.h"
 #include "mbedtls/ssl_internal.h"
 #include "timer_hal.h"
+#include "mbedtls/aes.h"
 
 // for debugging.
 #define DEBUG_TLS       1
