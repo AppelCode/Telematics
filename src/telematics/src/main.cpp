@@ -4,18 +4,18 @@
 #include <CarT.h>
 
 //setup threading
-SYSTEM_THREAD(ENABLED);
-SYSTEM_MODE(SEMI_AUTOMATIC);
+//SYSTEM_THREAD(ENABLED);
+//SYSTEM_MODE(SEMI_AUTOMATIC);
 
 void startupFunction();
 void threadFunction(void *param);
 
 //setup mutex
-STARTUP(startupFunction());
+//STARTUP(startupFunction());
 
 //mutex to be used to block thread untill needed
 os_mutex_t mutex;
-Thread thread("testThread", threadFunction);
+//Thread thread("testThread", threadFunction);
 
 //#include <CarT.h>
 void callback(char* topic, byte* payload, unsigned int length);
@@ -88,7 +88,6 @@ void startupFunction() {
 	os_mutex_create(&mutex);
 
 	// Initially lock it, so when the thread tries to lock it, it will block.
-	// It's unlocked in buttonHandler()
 	os_mutex_lock(mutex);
 }
 
