@@ -5,7 +5,7 @@
 
 //setup threading
 //SYSTEM_THREAD(ENABLED);
-//SYSTEM_MODE(SEMI_AUTOMATIC);
+SYSTEM_MODE(SEMI_AUTOMATIC);
 
 void startupFunction();
 void threadFunction(void *param);
