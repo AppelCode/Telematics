@@ -8,7 +8,7 @@ class  DOF {
 	
 public:
 	DOF();
-	float GX, GY, GZ; //example 9DOF object.GX();
+	float GX, GY, GZ; //example 9DOF object.GX;
 	float AX, AY, AZ; //same as above
 	float MX, MY, MZ;
 	float heading, pitch, roll;
