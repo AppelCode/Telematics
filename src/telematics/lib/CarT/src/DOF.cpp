@@ -27,7 +27,8 @@
 // a declination to get a more accurate heading. Calculate 
 // your's here:
 // http://www.ngdc.noaa.gov/geomag-web/#declination
-#define DECLINATION -8.58 // Declination (degrees) in Boulder, CO.
+#define DECLINATION -7.140 // Declination (degrees) in Columbus, OH.
+//In future 
 
 
 DOF::DOF()
