@@ -1,17 +1,18 @@
 // This #include statement was automatically added by the Particle IDE.
 #include "Particle.h"
+#include "cellular_hal.h"
 #include <MQTT-TLS.h>
 #include <CarT.h>
 
 //setup threading
-//SYSTEM_THREAD(ENABLED);
-SYSTEM_MODE(SEMI_AUTOMATIC);
+SYSTEM_THREAD(ENABLED);
+SYSTEM_MODE(MANUAL);
 
 void startupFunction();
 void threadFunction(void *param);
 
 //setup mutex
-//STARTUP(startupFunction());
+STARTUP(startupFunction());
 
 //mutex to be used to block thread untill needed
 os_mutex_t mutex;
@@ -27,7 +28,11 @@ void callback(char* topic, byte* payload, unsigned int length);
  * want to use domain name,
  * MQTT client("www.sample.com", 1883, callback);
  **/
+
 AWS awsiot("a3mb0mz6legbs8.iot.us-east-2.amazonaws.com", 8883, callback);
+Crypt secretStuff;
+
+unsigned char key[32];
 
 // recieve message
 //used for handling all subscription messages
@@ -53,31 +58,17 @@ void callback(char* topic, byte* payload, unsigned int length) {
 unsigned long lastSync = millis();
 int counter = 0;
 void setup() {
+
+
+    Serial.begin(9600);
+    /*
     //resync time everyday
     if (millis() - lastSync > ONE_DAY_MILLIS) {
         Particle.syncTime();
         lastSync = millis();
     }
-
-
-    RGB.control(true);
-
-}
-
-void loop() {
-    /*
-    if (awsiot.isConnected()) {
-        awsiot.loop();
-    }
     */
-    delay(200);
-}
-
-//use for thread setup
-//use for connection setup
-void startupFunction() {
-	
-    awsiot.connect("sparkclient");
+       awsiot.connect("sparkclient");
 
     // publish/subscribe
     if (awsiot.isConnected()) {
@@ -86,6 +77,36 @@ void startupFunction() {
         awsiot.subscribe("inTopic/message");
     }
 
+   while(1){
+        Serial.println("hello world");
+        secretStuff.generateKey(key);
+        Serial.println((int)key);
+        delay(200);
+   }
+
+
+    RGB.control(true);
+
+}
+
+void loop() {
+    
+    if (awsiot.isConnected()) {
+        awsiot.loop();
+    }
+    
+    delay(200);
+}
+
+//use for thread setup
+//use for connection setup
+void startupFunction() {
+    
+    cellular_credentials_set("wireless.twilio.com", "", "", NULL);
+    Cellular.on(); 
+    Cellular.connect();
+    
+
     // Create the mutex
 	os_mutex_create(&mutex);
 
@@ -93,6 +114,7 @@ void startupFunction() {
 	os_mutex_lock(mutex);
 }
 
+/*
 void threadFunction(void *param) {
 	while(true) {
 		// Block until unlocked by the buttonHandler
@@ -105,3 +127,4 @@ void threadFunction(void *param) {
 	}
 	// You must not return from the thread function
 }
+*/
