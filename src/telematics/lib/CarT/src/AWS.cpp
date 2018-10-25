@@ -9,14 +9,16 @@ AWS::AWS(char* domain, uint16_t port){
 }
 
 AWS::AWS(char* domain, uint16_t port, void (*callbackRef)(char*,uint8_t*,unsigned int)){
-    callback = callbackRef;
-    setupCon(domain,port,callback);
+    setupCon(domain,port,callbackRef);
 }
 
 bool AWS::isConnected(){
     return (awsMqtt->isConnected());
 }
 
+bool AWS::subscribe(const char* topic){
+    awsMqtt.subscribe(topic);
+}
 bool AWS::publish(const char * topic, const char *message){
     return (awsMqtt->publish(topic, message));
 }

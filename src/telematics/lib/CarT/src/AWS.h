@@ -15,6 +15,7 @@ public:
     bool isConnected();
     bool connect(const char*);
     bool publish(const char *, const char *);
+    bool subscribe(const char*);
     void setupCon(char* domain, uint16_t port, void (*callbackRef)(char*,uint8_t*,unsigned int));
     
 private:
@@ -23,8 +24,6 @@ private:
 
     char payload[512];
     char rcvdpayload[512];
-
-    void (*callback)(char*,uint8_t*,unsigned int);
 
 };
 #endif

@@ -14,7 +14,7 @@ void callback(char* topic, byte* payload, unsigned int length);
  **/
 AWS awsThing("a3mb0mz6legbs8.iot.us-east-2.amazonaws.com", 8883, &callback);
 
-// recieve message
+// custom callback function to hanlde messages from a topic
 void callback(char* topic, byte* payload, unsigned int length) {
     //to be defined will execute in another thread eventually
 }
@@ -30,6 +30,7 @@ void setup() {
     // publish/subscribe
     if (awsThing.isConnected()) {
         Serial.println("client connected");
+        awsThing.subscribe("inTopic/message");
         awsThing.publish("outTopic/message", "hello world");
     }
 }
