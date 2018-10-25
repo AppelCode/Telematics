@@ -18,7 +18,7 @@ public:
     
 private:
 
-    MQTT awsMqtt;
+    MQTT* awsMqtt;
     const char* clientID;
 
     char* endpoint;
