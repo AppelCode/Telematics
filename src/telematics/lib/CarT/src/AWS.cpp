@@ -28,17 +28,19 @@ bool AWS::loop(){
     awsMqtt.loop();
 }
 
-bool AWS::connect(const char * clientID){
-    return(setupCon(clientID));  
+bool AWS::connect(const char * ID){
+    clientID = ID;   
+    return(awsMqtt.connect(clientID));  
 }
 
-bool AWS::setupCon(const char* clientID) {
+bool AWS::setupCon(char* domain, uint16_t port, void (*callbackRef)(char*,uint8_t*,unsigned int)) {
     bool ret=0;
+    MQTT temp(domain,port,callbackRef);
 
     awsMqtt.enableTls(amazonIoTRootCaPem, sizeof(amazonIoTRootCaPem),
                      clientKeyCrtPem, sizeof(clientKeyCrtPem),
                      clientKeyPem, sizeof(clientKeyPem));
 
-    ret = awsMqtt.connect(clientID);               
+                  
     return(ret);  
 }

@@ -14,11 +14,12 @@ public:
     bool publish(const char *, const char *);
     bool subscribe(const char*);
     bool loop();
-    bool setupCon(const char* clientID);
+    bool setupCon(char* domain, uint16_t port, void (*callbackRef)(char*,uint8_t*,unsigned int));
     
 private:
 
     MQTT awsMqtt;
+    const char* clientID;
 
     char* endpoint;
     int awsport;
