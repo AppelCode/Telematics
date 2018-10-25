@@ -12,8 +12,9 @@ public:
 	float AX, AY, AZ; //same as above
 	float MX, MY, MZ;
 	float heading, pitch, roll;
-	
 	float TEMP;
+	
+
 	void getGyr();
 	void getAcc();
 	void getMag();
