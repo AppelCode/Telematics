@@ -12,7 +12,7 @@ public:
 	float AX, AY, AZ; //same as above
 	float MX, MY, MZ; //make sure to use all CAPS for all 9 of these to prevent conflict
 	float heading, pitch, roll;
-	float TEMP;
+	float TEMP; //temperature
 	
 
 	void getGyr();
