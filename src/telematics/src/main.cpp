@@ -29,13 +29,9 @@ void callback(char* topic, byte* payload, unsigned int length);
  **/
 AWS awsiot("a3mb0mz6legbs8.iot.us-east-2.amazonaws.com", 8883, callback);
 
-<<<<<<< HEAD
-// custom callback function to hanlde messages from a topic
-=======
 // recieve message
 //used for handling all subscription messages
 //will be updated using for updating rec buffer
->>>>>>> 15cf6e2275c96e0ebfd3ca476219a3d70fa67d24
 void callback(char* topic, byte* payload, unsigned int length) {
     char p[length + 1];
     memcpy(p, payload, length);
@@ -86,13 +82,8 @@ void startupFunction() {
     // publish/subscribe
     if (awsiot.isConnected()) {
         Serial.println("client connected");
-<<<<<<< HEAD
-        awsThing.subscribe("inTopic/message");
-        awsThing.publish("outTopic/message", "hello world");
-=======
         awsiot.publish("outTopic/message", "hello world");
         awsiot.subscribe("inTopic/message");
->>>>>>> 15cf6e2275c96e0ebfd3ca476219a3d70fa67d24
     }
 
     // Create the mutex
