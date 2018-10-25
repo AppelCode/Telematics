@@ -7,6 +7,7 @@
 #include "Particle.h"
 #include "AWS.h"
 #include "Crypt.h"
+#include "DOF.h"
 
 // This is your main class that users will import into their application
 class CarT
