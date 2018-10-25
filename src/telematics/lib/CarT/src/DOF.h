@@ -10,7 +10,7 @@ public:
 	DOF();
 	float GX, GY, GZ; //example 9DOF object.GX;
 	float AX, AY, AZ; //same as above
-	float MX, MY, MZ;
+	float MX, MY, MZ; //make sure to use all CAPS for all 9 of these to prevent conflict
 	float heading, pitch, roll;
 	float TEMP;
 	
