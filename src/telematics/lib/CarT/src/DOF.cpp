@@ -157,3 +157,29 @@ void DOF::getAtt()
   pitch *= 180.0 / M_PI;
   roll  *= 180.0 / M_PI;
 }
+
+String DOF::getAll()
+{ 
+	imu.readAccel();
+	imu.readMag(); 
+	imu.readTemp();
+	imu.readGyro();
+
+	
+	String returnstring= "{\"\n\t\"dofData\":{"
+               "\"time\":" +  String(Time.timeStr()) + ", " +
+               "\"ax\":" +  String(imu.ax) + ", " +
+               "\"ay\":" +  String(imu.ay) + ", " +
+               "\"az\":" + String(imu.az) + ", " +
+               "\"mx\":" + String(imu.mx) + ", " +
+               "\"my\":" + String(imu.my) + ", " +
+               "\"mz\":" + String(imu.mz) + ", " +
+               "\"gx\":" +  String(imu.gx) + ", " +
+               "\"gy\":" +  String(imu.gy) + ", " +
+               "\"gz\":" + String(imu.gz) + ", " +
+               "\"temp\":" + String(imu.temperature) + "}"
+               "\n}";
+			
+			
+	return returnstring;
+}
