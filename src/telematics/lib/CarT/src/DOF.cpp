@@ -184,7 +184,7 @@ String DOF::getAll()
 	return returnstring;
 }
 
-float DOF::dofARRAY()
+float *DOF::dofARRAY()
 {
 	
 	imu.readAccel();
