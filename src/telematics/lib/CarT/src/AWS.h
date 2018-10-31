@@ -7,7 +7,7 @@ class AWS {
 
 public:
     AWS();
-    AWS(char* domain, uint16_t port,void (*callback)(char *, uint8_t *, unsigned int));
+    AWS(char* domain, uint16_t port,void (*callbackRef)(char *, uint8_t *, unsigned int));
 
     bool isConnected();
     bool connect(const char*);
@@ -18,7 +18,7 @@ public:
     
 private:
 
-    MQTT* awsMqtt;
+    MQTT awsMqtt;
     const char* clientID;
 
     char* endpoint;

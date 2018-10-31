@@ -42,6 +42,7 @@ void DOF::setup()
   imu.settings.device.commInterface = IMU_MODE_I2C;
   imu.settings.device.mAddress = LSM9DS1_M;
   imu.settings.device.agAddress = LSM9DS1_AG;
+  imu.begin();
 }
 
 void DOF::getGyr()
@@ -120,7 +121,7 @@ void DOF::getTemp()
   // temperature with the most current data.
   imu.readTemp(); 
   // get temp
-  TEMP = imu.temperature;
+  TEMP = (imu.temperature/256 +25.0);
 }
 
 // Calculate pitch, roll, and heading.

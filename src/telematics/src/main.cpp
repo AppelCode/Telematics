@@ -3,6 +3,7 @@
 #include "cellular_hal.h"
 #include <MQTT-TLS.h>
 #include <CarT.h>
+#include <SdFat.h>
 
 //setup threading
 SYSTEM_THREAD(ENABLED);
@@ -32,6 +33,8 @@ void callback(char* topic, byte* payload, unsigned int length);
 AWS awsiot("a3mb0mz6legbs8.iot.us-east-2.amazonaws.com", 8883, callback);
 Crypt secretStuff;
 
+//DOF dof;
+
 unsigned char key[32];
 
 // recieve message
@@ -53,6 +56,24 @@ void callback(char* topic, byte* payload, unsigned int length) {
         RGB.color(255, 255, 255);
     delay(1000);
 }
+// dom add below
+
+// Pick an SPI configuration.
+// See SPI configuration section below (comments are for photon).
+#define SPI_CONFIGURATION 0
+//------------------------------------------------------------------------------
+// Setup SPI configuration.
+#if SPI_CONFIGURATION == 0
+// Primary SPI with DMA
+// SCK => A3, MISO => A4, MOSI => A5, SS => A2 (default)
+SdFat sd;
+const uint8_t chipSelect = SS;
+
+#endif  // SPI_CONFIGURATION
+
+File myFile;
+
+// dom add above
 
 #define ONE_DAY_MILLIS (24 * 60 * 60 * 1000)
 unsigned long lastSync = millis();
@@ -61,6 +82,18 @@ void setup() {
 
 
     Serial.begin(9600);
+    while (!Serial) {
+    SysCall::yield();
+    }
+
+    /* Initialize SdFat or print a detailed error message and halt
+    *  Use half speed like the native library.
+    *  Change to SPI_FULL_SPEED for more performance.
+    */
+    if (!sd.begin(chipSelect, SPI_HALF_SPEED)) {
+        sd.initErrorHalt();
+    }
+
     /*
     //resync time everyday
     if (millis() - lastSync > ONE_DAY_MILLIS) {
@@ -68,7 +101,11 @@ void setup() {
         lastSync = millis();
     }
     */
-       awsiot.connect("sparkclient");
+    dof.getTemp();
+    float temp = dof.TEMP;
+    awsiot.connect("sparkclient");
+
+
 
     // publish/subscribe
     if (awsiot.isConnected()) {
@@ -77,23 +114,31 @@ void setup() {
         awsiot.subscribe("inTopic/message");
     }
 
-   while(1){
-        Serial.println("hello world");
-        secretStuff.generateKey(key);
-        Serial.println((int)key);
-        delay(200);
-   }
-
-
     RGB.control(true);
 
-}
+    secretStuff.generateKey(key);
+    Serial.println((int)key);
+
+    // open the file for write at end like the "Native SD library"
+    if (!myFile.open("test.txt", O_RDWR | O_CREAT | O_AT_END)) {
+        sd.errorHalt("opening test.txt for write failed");
+    }
+    // if the file opened okay, write to it:
+    //Serial.print("Writing to test.txt...");
+    myFile.println(temp);
+    myFile.printf("fileSize: %d\n", myFile.fileSize());
+
+    // close the file:
+    myFile.close();
+}   
 
 void loop() {
-    
+
     if (awsiot.isConnected()) {
+        Serial.println("i made it");
         awsiot.loop();
     }
+
     
     delay(200);
 }
@@ -105,6 +150,10 @@ void startupFunction() {
     cellular_credentials_set("wireless.twilio.com", "", "", NULL);
     Cellular.on(); 
     Cellular.connect();
+
+    while(!Cellular.ready()){
+        Cellular.connect();
+    }
     
 
     // Create the mutex
