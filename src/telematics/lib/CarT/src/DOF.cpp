@@ -195,10 +195,7 @@ float DOF::dofARRAY()
 	
 	static float myDOF[9];
 	int i;
-	int j;
-	for (j = 0; j<3; j++) {
-		for(i = 0; i<3; i++) {
-			if (j==0){
+	for (i = 0; i<9; i++) {
 				if (i == 0) {
 				myDOF[i] = imu.ax; 
 				}
@@ -208,31 +205,25 @@ float DOF::dofARRAY()
 				if (i == 2) {
 				myDOF[i] = imu.az;
 				}
-			}
-			else if (j == 1){
-				if (i == 0) {
+				if (i == 3) {
 				myDOF[i] = imu.gx;
 				}
-				if (i == 1) {
+				if (i == 4) {
 				myDOF[i] = imu.gy;
 				}
-				if (i == 2) {
+				if (i == 5) {
 				myDOF[i] = imu.gz;
 				}				
-			}
-			else {
-				if (i == 0) {
+				if (i == 6) {
 				myDOF[i] = imu.mx;
 				}
-				if (i == 1) {
+				if (i == 7) {
 				myDOF[i] = imu.my;
 				}
-				if (i == 2) {
+				if (i == 8) {
 				myDOF[i] = imu.mz;
 				}				
-			}
-        	}
 		
-	}
+			}
 	return myDOF;
 }
