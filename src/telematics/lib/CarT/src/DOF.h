@@ -14,6 +14,7 @@ public:
 	float heading, pitch, roll;
 	float TEMP; //temperature
 	
+	String getAll(); //string to get everything in one place in JSON
 
 	void getGyr();
 	void getAcc();
