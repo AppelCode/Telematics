@@ -193,7 +193,7 @@ float DOF::dofARRAY()
 	imu.readGyro();
 	
 	
-	static float myDOF[8];
+	static float myDOF[9];
 	int i;
 	int j;
 	for (j = 0; j<3; j++) {
