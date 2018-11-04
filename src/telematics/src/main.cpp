@@ -111,6 +111,7 @@ void setup() {
         }
             
     
+        Serial.println(System.freeMemory());
         // publish/subscribe
         awsiot->connect("sparkclient");
         if (awsiot->isConnected()) {
@@ -118,6 +119,7 @@ void setup() {
             awsiot->publish("outTopic/message", "hello world");
             awsiot->subscribe("inTopic/message");
         }
+        Serial.println(System.freeMemory());
 
 
         //key genrateion and test
