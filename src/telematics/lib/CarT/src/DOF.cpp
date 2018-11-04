@@ -184,3 +184,47 @@ String DOF::getAll()
 			
 	return returnstring;
 }
+
+float *DOF::dofARRAY()
+{
+	
+	imu.readAccel();
+	imu.readMag(); 
+	imu.readTemp();
+	imu.readGyro();
+	
+	
+	static float myDOF[9];
+	int i;
+	for (i = 0; i<9; i++) {
+				if (i == 0) {
+				myDOF[i] = imu.ax; 
+				}
+				if (i == 1) {
+				myDOF[i] = imu.ay;
+				}
+				if (i == 2) {
+				myDOF[i] = imu.az;
+				}
+				if (i == 3) {
+				myDOF[i] = imu.gx;
+				}
+				if (i == 4) {
+				myDOF[i] = imu.gy;
+				}
+				if (i == 5) {
+				myDOF[i] = imu.gz;
+				}				
+				if (i == 6) {
+				myDOF[i] = imu.mx;
+				}
+				if (i == 7) {
+				myDOF[i] = imu.my;
+				}
+				if (i == 8) {
+				myDOF[i] = imu.mz;
+				}				
+		
+			}
+	return myDOF;
+}

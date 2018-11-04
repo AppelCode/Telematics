@@ -15,6 +15,7 @@ public:
 	float TEMP; //temperature
 	
 	String getAll(); //string to get everything in one place in JSON
+	float *dofARRAY();
 
 	void begin();
 	void getGyr();
