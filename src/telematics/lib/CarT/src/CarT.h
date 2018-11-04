@@ -8,15 +8,10 @@
 #include "AWS.h"
 #include "Crypt.h"
 #include "DOF.h"
+#include "CAN.h"
+#include "SD.h"
 
-DOF& _declar_DOF(){
-  static DOF dof();
-  return dof;
-}
-#define dof _declare_DOF()
 // This is your main class that users will import into their application
-
-
 class CarT
 {
 public:
@@ -34,7 +29,7 @@ public:
    * Example method
    */
   void process();
-
+  
 private:
   /**
    * Example private method

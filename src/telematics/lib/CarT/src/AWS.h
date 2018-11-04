@@ -26,6 +26,5 @@ private:
 
     char payload[512];
     char rcvdpayload[512];
-
 };
 #endif

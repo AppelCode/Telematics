@@ -1,4 +1,4 @@
-d:/CAR/TelematicsLocal/CybeSe/Telematics/src/telematics/target//obj/src/user_export.o: \
+D:/CAR/TelematicsLocal/CybeSe/Telematics/src/telematics/target//obj/src/user_export.o: \
  src/user_export.c \
  ../../../modules/shared/stm32f2xx/inc/user_part_export.c \
  ../../../modules/shared/stm32f2xx/inc/module_user_init.h \

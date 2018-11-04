@@ -1,5 +1,4 @@
 #include "Crypt.h"
-
 #include "application.h"
 
 //generate key

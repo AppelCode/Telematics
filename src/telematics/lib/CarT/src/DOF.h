@@ -3,7 +3,7 @@
 #include "SparkFunLSM9DS1.h"
 
 //not sure how functional this code is yet but it's a start. Needs to be tested more.
- 
+
 class  DOF {
 	
 public:
@@ -16,17 +16,17 @@ public:
 	
 	String getAll(); //string to get everything in one place in JSON
 
+	void begin();
 	void getGyr();
 	void getAcc();
 	void getMag();
 	void getAtt();
-	void getTemp();
+	bool getTemp();
 	
 	
 private:
     
 	LSM9DS1 imu; //LSM9DS1 object
-	void setup(); //has to be called before gyro, accel, mag, temp or attitude retrieval 
 
 };
 #endif

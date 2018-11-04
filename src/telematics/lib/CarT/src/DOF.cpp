@@ -33,11 +33,11 @@
 
 DOF::DOF()
 {
-	setup();
+  //initialize variables
 } 
 
 
-void DOF::setup() 
+void DOF::begin() 
 {
   imu.settings.device.commInterface = IMU_MODE_I2C;
   imu.settings.device.mAddress = LSM9DS1_M;
@@ -114,7 +114,7 @@ void DOF::getMag()
 #endif
 }
 
-void DOF::getTemp()
+bool DOF::getTemp()
 {
   // To read from the temperature, you must first call the
   // readTemp() function. When this exits, it'll update the
@@ -122,6 +122,7 @@ void DOF::getTemp()
   imu.readTemp(); 
   // get temp
   TEMP = (imu.temperature/256 +25.0);
+  return true;
 }
 
 // Calculate pitch, roll, and heading.

@@ -3,10 +3,6 @@
 
 #include "CarT.h"
 
-//extern AWS thing();
-//extern Crypt secretStuff();
-//extern DOF cartChar();
-
 /**
  * Constructor.
  */
