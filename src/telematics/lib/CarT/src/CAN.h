@@ -8,7 +8,7 @@ class CAN
         CAN();
         void begin();
         void transmit();
-        void receive();
+        char receive();
     private:
 };
 #endif
