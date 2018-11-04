@@ -104,21 +104,20 @@ void setup() {
         Serial.println(temp);
 
         //test sd storage
-        if (sd_storage.write(temp)){
+        if (sd_storage.write<float>(temp)){
             Serial.println("wrote to sd!");
         } else {
             Serial.println("did not write to sd!");
         }
             
-       /*
+    
         // publish/subscribe
         awsiot->connect("sparkclient");
-        if (awsiot.isConnected()) {
+        if (awsiot->isConnected()) {
             Serial.println("client connected");
-            awsiot.publish("outTopic/message", "hello world");
-            awsiot.subscribe("inTopic/message");
+            awsiot->publish("outTopic/message", "hello world");
+            awsiot->subscribe("inTopic/message");
         }
-        */
 
 
         //key genrateion and test
