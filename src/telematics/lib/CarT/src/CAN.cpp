@@ -27,11 +27,12 @@ char CAN::receive(){
                     rxData[rxIndex] = '\0';
                     rxIndex = 0;
                 }
+        }
         else {
             n = Serial5.read();
             rxData[rxIndex++] = n;
-            }
-      }
+        }
+    }
     return rxData;      
  }
 
