@@ -16,10 +16,17 @@ void startupFunction();
 void server_thread(void);         
 
 //setup stratup function and block everything untill finished
-STARTUP(startupFunction());
-bool startup=false;
+//STARTUP(startupFunction());
+bool startup=true;
 
 //mutex to be used to block thread untill needed
+<<<<<<< HEAD
+=======
+
+//Thread thread("server_thread", server_thread);
+
+//#include <CarT.h>
+>>>>>>> 097a73c2ae3cf4cf35fe9e6f80182654c6e3aab9
 void callback(char* topic, byte* payload, unsigned int length);
 extern AWS* awsiot = new AWS("a3mb0mz6legbs8.iot.us-east-2.amazonaws.com", 8883, callback);
 Thread thread("server_thread", server_thread, OS_THREAD_PRIORITY_DEFAULT,10*1024);
@@ -69,10 +76,20 @@ void setup() {
 
     //block untill startup is complete
     while(startup == false);
+<<<<<<< HEAD
+=======
+    
+        Serial.begin(9600);
+        delay(5000);
+        Serial.println("top of code");
+        //setup SD
+        sd_storage.begin();
+>>>>>>> 097a73c2ae3cf4cf35fe9e6f80182654c6e3aab9
 
     //setup SD
     //sd_storage.begin();
 
+<<<<<<< HEAD
     //setup 9DOF
     //dof.begin();
 
@@ -110,6 +127,53 @@ void setup() {
     secretStuff.generateKey(key);
     Serial.print("key: ");
     Serial.println((int)key);
+=======
+        //setup CAN
+        stn.begin();
+        int buffer[64];
+        int size=0;
+        stn.receive(buffer,size);
+        
+        //rts resync (not used)
+        /*
+        resync time everyday
+        if (millis() - lastSync > ONE_DAY_MILLIS) {
+            Particle.syncTime();
+            lastSync = millis();
+        }
+        */
+
+        //dof info
+        dof.getTemp();
+        float temp = dof.TEMP;
+        //Serial.print("dof temp: ");
+        //Serial.println(temp);
+
+        //test sd storage
+        if (sd_storage.write<float>(temp)){
+            Serial.println("bottom of code");
+        } else {
+            Serial.println("did not write to sd!");
+        }
+            
+    /*
+        Serial.println(System.freeMemory());
+        // publish/subscribe
+        awsiot->connect("sparkclient");
+        if (awsiot->isConnected()) {
+            Serial.println("client connected");
+            awsiot->publish("outTopic/message", "hello world");
+            awsiot->subscribe("inTopic/message");
+        }
+        Serial.println(System.freeMemory());
+    */
+
+        //key genrateion and test
+        secretStuff.generateKey(key);
+        Serial.print("key: ");
+        Serial.println((int)key);
+    
+>>>>>>> 097a73c2ae3cf4cf35fe9e6f80182654c6e3aab9
 
 
 }   
