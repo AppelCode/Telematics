@@ -16,12 +16,12 @@ void startupFunction();
 void server_thread(void);         
 
 //setup stratup function and block everything untill finished
-STARTUP(startupFunction());
-bool startup=false;
+//STARTUP(startupFunction());
+bool startup=true;
 
 //mutex to be used to block thread untill needed
 
-Thread thread("server_thread", server_thread);
+//Thread thread("server_thread", server_thread);
 
 //#include <CarT.h>
 void callback(char* topic, byte* payload, unsigned int length);
@@ -73,8 +73,10 @@ void setup() {
 
     //block untill startup is complete
     while(startup == false);
-    WITH_LOCK(Serial){
-
+    
+        Serial.begin(9600);
+        delay(5000);
+        Serial.println("top of code");
         //setup SD
         sd_storage.begin();
 
@@ -82,12 +84,11 @@ void setup() {
         dof.begin();
 
         //setup CAN
-        //stn.begin();
-
-        //used for testing, allows tera term to set up connection
-        delay(5000);
-        Serial.println(System.freeMemory());
-
+        stn.begin();
+        int buffer[64];
+        int size=0;
+        stn.receive(buffer,size);
+        
         //rts resync (not used)
         /*
         resync time everyday
@@ -100,17 +101,17 @@ void setup() {
         //dof info
         dof.getTemp();
         float temp = dof.TEMP;
-        Serial.print("dof temp: ");
-        Serial.println(temp);
+        //Serial.print("dof temp: ");
+        //Serial.println(temp);
 
         //test sd storage
         if (sd_storage.write<float>(temp)){
-            Serial.println("wrote to sd!");
+            Serial.println("bottom of code");
         } else {
             Serial.println("did not write to sd!");
         }
             
-    
+    /*
         Serial.println(System.freeMemory());
         // publish/subscribe
         awsiot->connect("sparkclient");
@@ -120,13 +121,13 @@ void setup() {
             awsiot->subscribe("inTopic/message");
         }
         Serial.println(System.freeMemory());
-
+    */
 
         //key genrateion and test
         secretStuff.generateKey(key);
         Serial.print("key: ");
         Serial.println((int)key);
-    }
+    
 
 
 }   

@@ -7,8 +7,8 @@ class CAN
     public:
         CAN();
         void begin();
-        void transmit();
-        void receive();
+        void monitorOBD();
+        int receive(int* buffer, int& size);
     private:
 };
 #endif
