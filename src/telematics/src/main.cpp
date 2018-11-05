@@ -20,11 +20,9 @@ STARTUP(startupFunction());
 bool startup=false;
 
 //mutex to be used to block thread untill needed
-
-Thread thread("server_thread", server_thread);
-
-//#include <CarT.h>
 void callback(char* topic, byte* payload, unsigned int length);
+extern AWS* awsiot = new AWS("a3mb0mz6legbs8.iot.us-east-2.amazonaws.com", 8883, callback);
+Thread thread("server_thread", server_thread, OS_THREAD_PRIORITY_DEFAULT,10*1024);
 
 /**
  * if want to use IP address,
@@ -32,9 +30,7 @@ void callback(char* topic, byte* payload, unsigned int length);
  * MQTT client(server, 1883, callback);
  * want to use domain name,
  * MQTT client("www.sample.com", 1883, callback);
- **/
-
-AWS* awsiot = new AWS("a3mb0mz6legbs8.iot.us-east-2.amazonaws.com", 8883, callback);  
+ **/ 
 Crypt secretStuff;                        
 
 //come from CART currently testing
@@ -73,60 +69,47 @@ void setup() {
 
     //block untill startup is complete
     while(startup == false);
-    WITH_LOCK(Serial){
 
-        //setup SD
-        sd_storage.begin();
+    //setup SD
+    //sd_storage.begin();
 
-        //setup 9DOF
-        dof.begin();
+    //setup 9DOF
+    //dof.begin();
 
-        //setup CAN
-        //stn.begin();
+    //setup CAN
+    //stn.begin();
 
-        //used for testing, allows tera term to set up connection
-        delay(5000);
-        Serial.println(System.freeMemory());
-
-        //rts resync (not used)
-        /*
-        resync time everyday
-        if (millis() - lastSync > ONE_DAY_MILLIS) {
-            Particle.syncTime();
-            lastSync = millis();
-        }
-        */
-
-        //dof info
-        dof.getTemp();
-        float temp = dof.TEMP;
-        Serial.print("dof temp: ");
-        Serial.println(temp);
-
-        //test sd storage
-        if (sd_storage.write<float>(temp)){
-            Serial.println("wrote to sd!");
-        } else {
-            Serial.println("did not write to sd!");
-        }
-            
-    
-        Serial.println(System.freeMemory());
-        // publish/subscribe
-        awsiot->connect("sparkclient");
-        if (awsiot->isConnected()) {
-            Serial.println("client connected");
-            awsiot->publish("outTopic/message", "hello world");
-            awsiot->subscribe("inTopic/message");
-        }
-        Serial.println(System.freeMemory());
-
-
-        //key genrateion and test
-        secretStuff.generateKey(key);
-        Serial.print("key: ");
-        Serial.println((int)key);
+    //rts resync (not used)
+    /*
+    resync time everyday
+    if (millis() - lastSync > ONE_DAY_MILLIS) {
+        Particle.syncTime();
+        lastSync = millis();
     }
+    */
+
+    //dof info
+    /*
+    dof.getTemp();
+    float temp = dof.TEMP;
+    Serial.print("dof temp: ");
+    Serial.println(temp);
+    */
+
+    /*
+    //test sd storage
+    if (sd_storage.write<float>(temp)){
+        Serial.println("wrote to sd!");
+    } else {
+        Serial.println("did not write to sd!");
+    }
+    */
+
+
+    //key genrateion and test
+    secretStuff.generateKey(key);
+    Serial.print("key: ");
+    Serial.println((int)key);
 
 
 }   
@@ -155,6 +138,12 @@ void startupFunction() {
     RGB.control(true);                                              //set RGB to control
     RGB.color(255, 0, 0);                                           //RED shows cellular connection is valid
 
+    //used for testing, allows tera term to set up connection
+    Serial.begin(9600);
+    while(!Serial);
+
+    //unlock recv buffer for use
+    os_mutex_unlock(recv_mutex);
     //startup complete                  
     startup=true;
 
@@ -162,18 +151,23 @@ void startupFunction() {
 
 //AWS server thread that poles for MQTT requests on different subscribed nodes
 void server_thread(void) {
-    //setup AWS connection
-    while(startup == false);
-
-    //RGB.color(0, 255, 0);                               //valid aws connection
     
-	while(true) {
-        os_mutex_lock(recv_mutex);
-        /*
-        if (awsiot.isConnected()) {
-            awsiot.loop();
+    while(startup == false);            //wait for startup to finish
+    awsiot->connect("sparkclient");     //setup AWS connection
+        if (awsiot->isConnected()) {
+            awsiot->publish("outTopic/message", "hello world");
+            awsiot->subscribe("inTopic/message");
         }
-        */
+
+    RGB.color(0, 255, 0);                               //valid aws connection
+    delay(1000);
+	while(true) {       
+        os_mutex_lock(recv_mutex);       
+        if (awsiot->isConnected()) {
+            
+            awsiot->loop();
+        }
+        os_mutex_unlock(recv_mutex);
         os_thread_delay_until(&lastThreadTime, 10);
 	} 
 }
