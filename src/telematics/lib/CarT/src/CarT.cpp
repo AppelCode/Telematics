@@ -125,19 +125,18 @@ void server_thread_function(void) {
 //does not require cell connection
 void CAN_thread_function(void){
 
+    stn->begin();        //setup CAN
     //never return
-    while(1){
-        stn->begin();        //setup CAN
+    while(1){ 
     }
 }
 
 //does not require cell connection
 void internal_thread_function(void){
-   
+    _gps->begin(9600);   //setup GPS   
+    dof->begin();        //DOF begin 
     //never return
    while(1){
-        _gps->begin(9600);   //setup GPS   
-        dof->begin();        //DOF begin   
    }
 
 }
