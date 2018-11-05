@@ -10,6 +10,7 @@
 #include "DOF.h"
 #include "CAN.h"
 #include "SD.h"
+#include "Telematics-GPS.h"
 
 // This is your main class that users will import into their application
 class CarT

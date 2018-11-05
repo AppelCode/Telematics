@@ -1,7 +1,7 @@
 #ifndef CART_SD_H
 #define CART_SD_H
 
-#include <Sdfat.h>
+#include <SdFat.h>
 #include "Particle.h"
 
 

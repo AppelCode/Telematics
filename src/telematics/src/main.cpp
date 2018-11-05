@@ -28,6 +28,7 @@ Thread thread("server_thread", server_thread, OS_THREAD_PRIORITY_DEFAULT,10*1024
 //components of Telematics device
 CAN stn;
 DOF dof;
+Tgps gps;
 SD sd_storage;
 Gps _gps = Gps(&Serial1);
 Gga* gga;
