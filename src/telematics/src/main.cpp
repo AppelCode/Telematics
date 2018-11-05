@@ -19,105 +19,81 @@ void server_thread(void);
 //STARTUP(startupFunction());
 bool startup=true;
 
-//mutex to be used to block thread untill needed
+//MQTT server intalization
 void callback(char* topic, byte* payload, unsigned int length);
 extern AWS* awsiot = new AWS("a3mb0mz6legbs8.iot.us-east-2.amazonaws.com", 8883, callback);
 Thread thread("server_thread", server_thread, OS_THREAD_PRIORITY_DEFAULT,10*1024);
 
-/**
- * if want to use IP address,
- * byte server[] = { XXX,XXX,XXX,XXX };
- * MQTT client(server, 1883, callback);
- * want to use domain name,
- * MQTT client("www.sample.com", 1883, callback);
- **/ 
-Crypt secretStuff;                        
-
 //come from CART currently testing
+//components of Telematics device
 CAN stn;
 DOF dof;
 SD sd_storage;
+Gps _gps = Gps(&Serial1);
+Gga* gga;
+Crypt secretStuff;
 
 //holds encryption key
 unsigned char key[32];
-
-// recieve message
-//used for handling all subscription messages
-//will be using for updating recv buffer
-void callback(char* topic, byte* payload, unsigned int length) {
-    char p[length + 1];
-    memcpy(p, payload, length);
-    p[length] = NULL;
-    String message(p);
-
-    if (message.equals("RED"))
-        RGB.color(255, 0, 0);
-    else if (message.equals("GREEN"))
-        RGB.color(0, 255, 0);
-    else if (message.equals("BLUE"))
-        RGB.color(0, 0, 255);
-    else
-        RGB.color(255, 255, 255);
-    delay(1000);
-}
-
 
 #define ONE_DAY_MILLIS (24 * 60 * 60 * 1000)
 unsigned long lastSync = millis();
 int counter = 0;
 void setup() {
 
-    //block untill startup is complete
-    while(startup == false);
-
-    //setup SD
-    //sd_storage.begin();
-
-        //setup CAN
-        stn.begin();
-        int buffer[64];
-        int size=0;
-        stn.receive(buffer,size);
-        
-        //rts resync (not used)
-        /*
-        resync time everyday
-        if (millis() - lastSync > ONE_DAY_MILLIS) {
-            Particle.syncTime();
-            lastSync = millis();
-        }
-        */
-
-        //dof info
-        dof.getTemp();
-        float temp = dof.TEMP;
-        //Serial.print("dof temp: ");
-        //Serial.println(temp);
-
-        //test sd storage
-        if (sd_storage.write<float>(temp)){
-            Serial.println("bottom of code");
-        } else {
-            Serial.println("did not write to sd!");
-        }
-            
+    //rts resync (not used)
     /*
-        Serial.println(System.freeMemory());
-        // publish/subscribe
-        awsiot->connect("sparkclient");
-        if (awsiot->isConnected()) {
-            Serial.println("client connected");
-            awsiot->publish("outTopic/message", "hello world");
-            awsiot->subscribe("inTopic/message");
-        }
-        Serial.println(System.freeMemory());
+    resync time everyday
+    if (millis() - lastSync > ONE_DAY_MILLIS) {
+        Particle.syncTime();
+        lastSync = millis();
+    }
     */
 
-        //key genrateion and test
-        secretStuff.generateKey(key);
-        Serial.print("key: ");
-        Serial.println((int)key);
-    
+    //block untill startup is complete
+    while(startup == false);
+   
+    sd_storage.begin(); //setup SD   
+    _gps.begin(9600);   //setup GPS   
+    dof.begin;          //DOF begin   
+    stn.begin();        //setup CAN
+
+    //CAN
+    int buffer[64];
+    int size=0;
+    stn.receive(buffer,size);
+
+    //test dof
+    dof.getTemp();          //aquire dof temp
+    float temp = dof.TEMP;  //set to temp
+
+    //test gps
+    //wait for fix
+     _gps.onSerialData();
+    *gga = Gga(_gps);   //setup GPS parser
+
+    //test sd storage
+    if (sd_storage.write<float>(temp)){
+        Serial.println("bottom of code");
+    } else {
+        Serial.println("did not write to sd!");
+    }
+        
+    Serial.println(System.freeMemory());
+    // publish/subscribe
+    awsiot->connect("sparkclient");
+    if (awsiot->isConnected()) {
+        Serial.println("client connected");
+        awsiot->publish("outTopic/message", "hello world");
+        awsiot->subscribe("inTopic/message");
+    }
+    Serial.println(System.freeMemory());
+
+    //key genrateion and test
+    secretStuff.generateKey(key);
+    Serial.print("key: ");
+    Serial.println((int)key);
+
 
 
 }   
@@ -155,6 +131,26 @@ void startupFunction() {
     //startup complete                  
     startup=true;
 
+}
+
+// recieve message handler for server_thread
+//used for handling all subscription messages
+//will be using for updating recv buffer
+void callback(char* topic, byte* payload, unsigned int length) {
+    char p[length + 1];
+    memcpy(p, payload, length);
+    p[length] = NULL;
+    String message(p);
+
+    if (message.equals("RED"))
+        RGB.color(255, 0, 0);
+    else if (message.equals("GREEN"))
+        RGB.color(0, 255, 0);
+    else if (message.equals("BLUE"))
+        RGB.color(0, 0, 255);
+    else
+        RGB.color(255, 255, 255);
+    delay(1000);
 }
 
 //AWS server thread that poles for MQTT requests on different subscribed nodes
