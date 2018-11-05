@@ -30,7 +30,27 @@ int CAN::receive(int* buffer, int& size){
     return Serial5.available();
 }
 
-
+/*
+char CAN::receive(){
+    char rxData[32];
+    char rxIndex = 0;
+    char n = 0;
+    while(n != '\r'){
+        if (Serial5.available() > 0){
+                if (Serial5.peak() == '\r'){
+                    n = Serial5.read();
+                    rxData[rxIndex] = '\0';
+                    rxIndex = 0;
+                }
+        }
+        else {
+            n = Serial5.read();
+            rxData[rxIndex++] = n;
+        }
+    }
+    return rxData;      
+ }
+ */
 
 
 
