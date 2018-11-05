@@ -20,13 +20,6 @@ void server_thread(void);
 bool startup=true;
 
 //mutex to be used to block thread untill needed
-<<<<<<< HEAD
-=======
-
-//Thread thread("server_thread", server_thread);
-
-//#include <CarT.h>
->>>>>>> 097a73c2ae3cf4cf35fe9e6f80182654c6e3aab9
 void callback(char* topic, byte* payload, unsigned int length);
 extern AWS* awsiot = new AWS("a3mb0mz6legbs8.iot.us-east-2.amazonaws.com", 8883, callback);
 Thread thread("server_thread", server_thread, OS_THREAD_PRIORITY_DEFAULT,10*1024);
@@ -76,58 +69,10 @@ void setup() {
 
     //block untill startup is complete
     while(startup == false);
-<<<<<<< HEAD
-=======
-    
-        Serial.begin(9600);
-        delay(5000);
-        Serial.println("top of code");
-        //setup SD
-        sd_storage.begin();
->>>>>>> 097a73c2ae3cf4cf35fe9e6f80182654c6e3aab9
 
     //setup SD
     //sd_storage.begin();
 
-<<<<<<< HEAD
-    //setup 9DOF
-    //dof.begin();
-
-    //setup CAN
-    //stn.begin();
-
-    //rts resync (not used)
-    /*
-    resync time everyday
-    if (millis() - lastSync > ONE_DAY_MILLIS) {
-        Particle.syncTime();
-        lastSync = millis();
-    }
-    */
-
-    //dof info
-    /*
-    dof.getTemp();
-    float temp = dof.TEMP;
-    Serial.print("dof temp: ");
-    Serial.println(temp);
-    */
-
-    /*
-    //test sd storage
-    if (sd_storage.write<float>(temp)){
-        Serial.println("wrote to sd!");
-    } else {
-        Serial.println("did not write to sd!");
-    }
-    */
-
-
-    //key genrateion and test
-    secretStuff.generateKey(key);
-    Serial.print("key: ");
-    Serial.println((int)key);
-=======
         //setup CAN
         stn.begin();
         int buffer[64];
@@ -173,7 +118,6 @@ void setup() {
         Serial.print("key: ");
         Serial.println((int)key);
     
->>>>>>> 097a73c2ae3cf4cf35fe9e6f80182654c6e3aab9
 
 
 }   
