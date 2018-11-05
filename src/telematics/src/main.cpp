@@ -36,6 +36,7 @@ Crypt secretStuff;
 //come from CART currently testing
 CAN stn;
 DOF dof;
+Tgps gps;
 SD sd_storage;
 
 //holds encryption key
@@ -78,6 +79,19 @@ void setup() {
         int buffer[64];
         int size=0;
         stn.receive(buffer,size);
+		
+		//This section is for demo only
+		//Prints gps and dof 50 times
+		//shake and move dof to get diff values at run time
+        sd_storage.begin();   
+
+		for (int i=0;i<50;i++){
+		String demoG = gps.retrieve();
+		String demoD = dof.getAll();
+		sd_storage.write(demoG);
+		sd_storage.write(demoD);
+		}
+		//above section is for demo only
         
         //rts resync (not used)
         /*
@@ -87,19 +101,21 @@ void setup() {
             lastSync = millis();
         }
         */
-
+		
         //dof info
-        dof.getTemp();
-        float temp = dof.TEMP;
+        //dof.getTemp();
+        //float temp = dof.TEMP;
         //Serial.print("dof temp: ");
         //Serial.println(temp);
 
         //test sd storage
-        if (sd_storage.write<float>(temp)){
+        /*
+		if (sd_storage.write<float>(temp)){
             Serial.println("bottom of code");
         } else {
             Serial.println("did not write to sd!");
         }
+		*/
             
     /*
         Serial.println(System.freeMemory());
