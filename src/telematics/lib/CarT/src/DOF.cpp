@@ -99,7 +99,6 @@ void DOF::getMag()
   imu.readMag(); 
   // Now we can use the mx, my, and mz variables as we please.
   // Either print them as raw ADC values, or calculated in Gauss.
-  Serial.print("M: ");
 #ifdef PRINT_CALCULATED
   // If you want to print calculated values, you can use the
   // calcMag helper function to convert a raw ADC value to
@@ -167,7 +166,7 @@ String DOF::getAll()
 	imu.readGyro();
 
 	
-	String returnstring= "{\"\n\t\"dofData\":{"
+	String returnstring= "{\t\"dofData\":{"
                "\"time\":" +  String(Time.timeStr()) + ", " +
                "\"ax\":" +  String(imu.ax) + ", " +
                "\"ay\":" +  String(imu.ay) + ", " +

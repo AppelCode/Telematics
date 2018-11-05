@@ -16,6 +16,8 @@ void CAN::begin(){
     delay(1200);
 }
 
+//insert buffer and size of buffer
+//returns buffer with recived can data and the size of the buffer
 int CAN::receive(int* buffer, int& size){
     int temp;
     int i = 0;
