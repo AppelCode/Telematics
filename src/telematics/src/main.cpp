@@ -3,8 +3,8 @@
 #include <CarT.h>
 
 
-SYSTEM_THREAD(ENABLED);//setup threading
-SYSTEM_MODE(MANUAL);//system mode to disable auto cell connect        
+SYSTEM_THREAD(ENABLED);     //setup threading
+SYSTEM_MODE(MANUAL);        //system mode to disable auto cell connect        
 STARTUP(startup_function());//setup stratup function and block everything untill finished
 
 //holds encryption key
@@ -22,10 +22,9 @@ void setup() {
         Particle.syncTime();
         lastSync = millis();
     }
-    */
+    */ 
 
-    //block untill startup is complete
-    while(startup == false);
+    /* test sequences
 
     //test dof
     dof.getTemp();          //aquire dof temp
@@ -42,23 +41,12 @@ void setup() {
     } else {
         Serial.println("did not write to sd!");
     }
-        
-    Serial.println(System.freeMemory());
-    // publish/subscribe
-    awsiot->connect("sparkclient");
-    if (awsiot->isConnected()) {
-        Serial.println("client connected");
-        awsiot->publish("outTopic/message", "hello world");
-        awsiot->subscribe("inTopic/message");
-    }
-    Serial.println(System.freeMemory());
 
     //key genrateion and test
     secretStuff.generateKey(key);
     Serial.print("key: ");
     Serial.println((int)key);
-
-
+    */
 
 }   
 

@@ -34,12 +34,12 @@ extern os_mutex_t dof_recv_mutex;
 extern bool startup;
 
 //components of telematics device
-extern CAN stn;
-extern DOF dof;
-extern SD sd_storage;
-extern Gps _gps;
+extern CAN* stn;
+extern DOF* dof;
+extern SD* sd_storage;
+extern Gps* _gps;
 extern Gga* gga;
-extern Crypt secretStuff;
+extern Crypt* secretStuff;
 
 extern void callback(char* topic, byte* payload, unsigned int length);
 extern AWS* awsiot;
