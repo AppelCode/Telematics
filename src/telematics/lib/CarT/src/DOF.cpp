@@ -166,7 +166,7 @@ String DOF::getAll()
 	imu.readGyro();
 
 	
-	String returnstring= "{\"\n\t\"dofData\":{"
+	String returnstring= "{\t\"dofData\":{"
                "\"time\":" +  String(Time.timeStr()) + ", " +
                "\"ax\":" +  String(imu.ax) + ", " +
                "\"ay\":" +  String(imu.ay) + ", " +
