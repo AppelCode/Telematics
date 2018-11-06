@@ -6,7 +6,7 @@
 #include <Particle-GPS.h>
 #include "cellular_hal.h"
 
-#define CELLULAR true
+#define CELLULAR false
 
 //start up and thread functions
 extern void startup_function();             //startup function 
@@ -19,8 +19,8 @@ extern system_tick_t lastThreadTime;        //used for thread timing if needed
 //global buffers
 extern char* mqtt_recv_buffer;  //buffer for mqqt_recv data
 extern char* mqtt_send_buffer;  //buffer for mqtt_send data 
-extern int*  can_recv_buffer;   //buffer for can_recv data
-extern int*  can_send_buffer;   //buffer for can_send data
+extern int  can_recv_buffer[64];   //buffer for can_recv data
+extern int  can_send_buffer[64];   //buffer for can_send data
 extern void* gps_recv_buffer;   //buffer for gps_recv data
 extern void* dof_recv_buffer;   //buffer for dof_recv data
 

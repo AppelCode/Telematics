@@ -12,7 +12,7 @@ bool SD::write(datatype data)
             return false;
         }
         
-        myFile.println(data);   // write data to Sd
+        myFile.print(data);   // write data to Sd
         myFile.close();         // close file to save data
 
         return true;
