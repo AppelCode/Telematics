@@ -4,6 +4,10 @@ Crypt::Crypt(){
     mbedtls_ctr_drbg_random( &ctr_drbg, iv, 16 );
 }
 
+Crypt::Crypt(){
+    mbedtls_ctr_drbg_random( &ctr_drbg, iv, 16 );
+}
+
 //generate key
 int Crypt::generateKey(){
     int ret=0;
@@ -12,6 +16,7 @@ int Crypt::generateKey(){
     mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,(unsigned char *) pers, strlen(pers) );
     mbedtls_ctr_drbg_random( &ctr_drbg, key, 32 );
+    mbedtls_aes_setkey_enc( &aes, key, 256 );
 
     return ret;
 }
@@ -20,9 +25,13 @@ int Crypt::generateKey(){
 int Crypt::encryptData(unsigned char* input,unsigned char* output){
     int ret=0;
     
+<<<<<<< HEAD
     memcpy(ogiv,iv,16);
     mbedtls_aes_setkey_enc( &aes, key, 256 );
     mbedtls_aes_crypt_cbc( &aes, MBEDTLS_AES_ENCRYPT, 64, iv, input, output );
+=======
+    mbedtls_aes_crypt_cbc( &aes, MBEDTLS_AES_ENCRYPT, 11, iv, input, output );
+>>>>>>> ae56fd5392f1ff737ac618f5c8da4ded0b58f5d8
 
     return ret;
 }
@@ -31,7 +40,11 @@ int Crypt::encryptData(unsigned char* input,unsigned char* output){
 int Crypt::decryptData(unsigned char* input,unsigned char* output){
     int ret=0;
 
+<<<<<<< HEAD
     mbedtls_aes_crypt_cbc( &aes, MBEDTLS_AES_DECRYPT, 64, ogiv, input, output );  
+=======
+    mbedtls_aes_crypt_cbc( &aes, MBEDTLS_AES_DECRYPT, 11, iv, input, output );  
+>>>>>>> ae56fd5392f1ff737ac618f5c8da4ded0b58f5d8
 
     return ret;
 

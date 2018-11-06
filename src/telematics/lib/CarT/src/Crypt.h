@@ -8,7 +8,11 @@ class Crypt {
     public:
 
         Crypt();
+<<<<<<< HEAD
         int generateKey();
+=======
+        int generateKey(unsigned char* key);
+>>>>>>> ae56fd5392f1ff737ac618f5c8da4ded0b58f5d8
         int encryptData(unsigned char* input,unsigned char* output);
         int decryptData(unsigned char* input,unsigned char* output);
 

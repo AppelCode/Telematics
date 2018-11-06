@@ -4,6 +4,7 @@
 #include "CAN.h"
 #include "SD.h"
 #include <Particle-GPS.h>
+#include "cellular_hal.h"
 
 #define CELLULAR false
 
