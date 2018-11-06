@@ -1,4 +1,5 @@
 #include "Particle.h"
+
 #include <CarT.h>
 
 
@@ -17,7 +18,6 @@ void setup() {
 
     Serial.begin(9600);
     while(!Serial);
-
     delay(5000);
     sd_storage->begin();
     dof->getTemp();
@@ -35,6 +35,45 @@ void setup() {
     
     RGB.color(0,100,100);
     
+
+    secretStuff->generateKey(key);
+    Serial.print("key: ");
+    Serial.println((int)key);
+
+    Serial.println(System.freeMemory());
+    unsigned char input[128] = "hello world";
+    unsigned char output[128];
+
+    for(int i = 11; i < 128; i++){
+        input[i] = '0';
+    }
+
+    secretStuff->encryptData(input,output);
+    for(int i = 0; i < 11; i++){
+        Serial.printf("%c",output[i]);
+    }
+    secretStuff->decryptData(output,input);
+    Serial.println();
+    for(int i = 0; i < 11; i++){
+        Serial.printf("%c",input[i]);
+    }
+
+    /*
+    //test dof
+    dof.getTemp();          //aquire dof temp
+    float temp = dof.TEMP;  //set to temp
+
+
+    //test sd storage
+    if (sd_storage.write<float>(temp)){
+        Serial.println("bottom of code");
+    } else {
+        Serial.println("did not write to sd!");
+    }
+    */
+
+    
+
 
 }   
 
