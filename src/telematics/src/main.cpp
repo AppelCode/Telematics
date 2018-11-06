@@ -36,7 +36,7 @@ void setup() {
     RGB.color(0,100,100);
     
 
-    secretStuff->generateKey(key);
+    secretStuff->generateKey();
     Serial.print("key: ");
     Serial.println((int)key);
 
@@ -58,19 +58,6 @@ void setup() {
         Serial.printf("%c",input[i]);
     }
 
-    /*
-    //test dof
-    dof.getTemp();          //aquire dof temp
-    float temp = dof.TEMP;  //set to temp
-
-
-    //test sd storage
-    if (sd_storage.write<float>(temp)){
-        Serial.println("bottom of code");
-    } else {
-        Serial.println("did not write to sd!");
-    }
-    */
 
     
 

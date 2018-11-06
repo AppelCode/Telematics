@@ -84,11 +84,6 @@ void startup_function() {
     while(!Cellular.ready());                                       //wait until connected
 #endif
 
-
-    delay(1000);
-    //used for testing, allows tera term to set up connection
-    
-
     //unlock mutex
 	os_mutex_unlock(mqtt_recv_mutex);
     os_mutex_unlock(mqtt_send_mutex);

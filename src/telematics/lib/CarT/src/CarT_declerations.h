@@ -6,7 +6,7 @@
 #include <Particle-GPS.h>
 #include "cellular_hal.h"
 
-#define CELLULAR false
+#define CELLULAR true
 
 //start up and thread functions
 extern void startup_function();             //startup function 
