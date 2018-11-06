@@ -8,8 +8,8 @@ system_tick_t lastThreadTime = 0;
 //initialize buffers
 char* mqtt_recv_buffer;  //buffer for mqqt_recv data
 char* mqtt_send_buffer;  //buffer for mqtt_send data 
-int*  can_recv_buffer;   //buffer for can_recv data
-int*  can_send_buffer;   //buffer for can_send data
+int  can_recv_buffer[64];   //buffer for can_recv data
+int  can_send_buffer[64];   //buffer for can_send data
 void* gps_recv_buffer;   //buffer for gps_recv data
 void* dof_recv_buffer;   //buffer for dof_recv data
 
@@ -82,12 +82,10 @@ void startup_function() {
     while(!Cellular.ready());                                       //wait until connected
 #endif
 
-    RGB.control(true);         //set RGB to control 
-    RGB.color(255,0,0);
+
     delay(1000);
     //used for testing, allows tera term to set up connection
-    Serial.begin(9600);
-    while(!Serial);
+    
 
     //unlock mutex
 	os_mutex_unlock(mqtt_recv_mutex);
@@ -108,9 +106,6 @@ void server_thread_function(void) {
             awsiot->publish("outTopic/message", "hello world");
             awsiot->subscribe("inTopic/message");
         }
-
-    RGB.color(0, 255, 0);                               //valid aws connection
-    delay(1000);
 	while(true) {       
         os_mutex_lock(mqtt_recv_mutex);       
         if (awsiot->isConnected()) {
@@ -126,6 +121,11 @@ void server_thread_function(void) {
 void CAN_thread_function(void){
 
     stn->begin();        //setup CAN
+    int size = 0;
+    os_mutex_lock(can_recv_mutex);
+    stn->receive(can_recv_buffer,size);
+    os_mutex_unlock(can_recv_mutex);
+    delay(20);
     //never return
     while(1){ 
     }

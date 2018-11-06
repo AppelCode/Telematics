@@ -15,6 +15,31 @@ unsigned long lastSync = millis();
 int counter = 0;
 void setup() {
 
+
+    Serial.begin(9600);
+    while(!Serial);
+
+    delay(5000);
+    sd_storage->begin();
+    dof->getTemp();
+    RGB.control(true);
+    RGB.color(0,255,0);
+    
+    for(int i =0; i<=21;i++)
+    {
+    sd_storage->write((char) can_recv_buffer[i]);
+    }
+    sd_storage->write('\n');
+    
+    sd_storage->write(dof->TEMP);
+    sd_storage->write('\n');
+    
+    RGB.color(0,100,100);
+    
+    
+
+
+
     //rts resync (not used)
     /*
     resync time everyday

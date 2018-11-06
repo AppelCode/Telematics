@@ -7,9 +7,10 @@
 class Crypt {
     public:
 
-        int generateKey(unsigned char* key);
-        int encryptData(unsigned char* key, unsigned char* input,unsigned char* output);
-        int decryptData(unsigned char* key, unsigned char* input,unsigned char* output);
+        Crypt();
+        int generateKey();
+        int encryptData(unsigned char* input,unsigned char* output);
+        int decryptData(unsigned char* input,unsigned char* output);
 
     private:
         //used for key generation
@@ -19,7 +20,9 @@ class Crypt {
 
         //used for encryption
         mbedtls_aes_context aes;
+        unsigned char key[32];
         unsigned char iv[16];
+        unsigned char ogiv[16];
 
 };
 #endif 
