@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "crypto_dynalib.h": "c",
+        "aes.h": "c",
+        "cstddef": "cpp"
+    }
+}
