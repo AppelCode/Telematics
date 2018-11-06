@@ -1,5 +1,4 @@
 #include "Particle.h"
-#include "cellular_hal.h"
 #include <CarT.h>
 
 
@@ -15,25 +14,38 @@ unsigned long lastSync = millis();
 int counter = 0;
 void setup() {
 
-    //rts resync (not used)
-    /*
-    resync time everyday
-    if (millis() - lastSync > ONE_DAY_MILLIS) {
-        Particle.syncTime();
-        lastSync = millis();
+
+    Serial.begin(9600);
+    while(!Serial);
+    delay(5000);
+
+    secretStuff->generateKey(key);
+    Serial.print("key: ");
+    Serial.println((int)key);
+
+    Serial.println(System.freeMemory());
+    unsigned char input[128] = "hello world";
+    unsigned char output[128];
+
+    for(int i = 11; i < 128; i++){
+        input[i] = '0';
     }
-    */ 
 
-    /* test sequences
+    secretStuff->encryptData(input,output);
+    for(int i = 0; i < 11; i++){
+        Serial.printf("%c",output[i]);
+    }
+    secretStuff->decryptData(output,input);
+    Serial.println();
+    for(int i = 0; i < 11; i++){
+        Serial.printf("%c",input[i]);
+    }
 
+    /*
     //test dof
     dof.getTemp();          //aquire dof temp
     float temp = dof.TEMP;  //set to temp
 
-    //test gps
-    //wait for fix
-     _gps.onSerialData();
-    *gga = Gga(_gps);   //setup GPS parser
 
     //test sd storage
     if (sd_storage.write<float>(temp)){
@@ -41,12 +53,10 @@ void setup() {
     } else {
         Serial.println("did not write to sd!");
     }
-
-    //key genrateion and test
-    secretStuff.generateKey(key);
-    Serial.print("key: ");
-    Serial.println((int)key);
     */
+
+    
+
 
 }   
 

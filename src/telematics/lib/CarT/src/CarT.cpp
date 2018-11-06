@@ -29,8 +29,10 @@ Gps* _gps = new Gps(&Serial1);
 //Gga* gga = new Gga(*_gps);
 AWS* awsiot = new AWS("a3mb0mz6legbs8.iot.us-east-2.amazonaws.com", 8883, callback);
 
+bool startup = false;
+
 //setup threads
-Thread server_thread("server_thread", server_thread_function, OS_THREAD_PRIORITY_DEFAULT,4*1024);
+Thread server_thread("server_thread", server_thread_function, OS_THREAD_PRIORITY_DEFAULT,20*1024);
 Thread CAN_thread("CAN_thread", CAN_thread_function, OS_THREAD_PRIORITY_DEFAULT,4*1024);
 Thread internal_thread("Internal_thread", internal_thread_function, OS_THREAD_PRIORITY_DEFAULT,4*1024);
 
@@ -81,13 +83,7 @@ void startup_function() {
     Cellular.connect();                                             //connect using twillio
     while(!Cellular.ready());                                       //wait until connected
 #endif
-
-    RGB.control(true);         //set RGB to control 
-    RGB.color(255,0,0);
-    delay(1000);
-    //used for testing, allows tera term to set up connection
-    Serial.begin(9600);
-    while(!Serial);
+    //RGB.control(true);
 
     //unlock mutex
 	os_mutex_unlock(mqtt_recv_mutex);
@@ -96,21 +92,23 @@ void startup_function() {
     os_mutex_unlock(can_send_mutex);
     os_mutex_unlock(gps_recv_mutex);
     os_mutex_unlock(dof_recv_mutex);
-    //startup complete                 
+    //startup complete  
+
+    startup = true;               
 }
 
 //AWS server thread that poles for MQTT requests on different subscribed nodes
 //requires cell connection
 void server_thread_function(void) {
     
+    while(!startup);
+    RGB.control(true);
     awsiot->connect("sparkclient");     //setup AWS connection
         if (awsiot->isConnected()) {
             awsiot->publish("outTopic/message", "hello world");
             awsiot->subscribe("inTopic/message");
         }
 
-    RGB.color(0, 255, 0);                               //valid aws connection
-    delay(1000);
 	while(true) {       
         os_mutex_lock(mqtt_recv_mutex);       
         if (awsiot->isConnected()) {
@@ -125,6 +123,7 @@ void server_thread_function(void) {
 //does not require cell connection
 void CAN_thread_function(void){
 
+    while(!startup);
     stn->begin();        //setup CAN
     //never return
     while(1){ 
@@ -133,6 +132,7 @@ void CAN_thread_function(void){
 
 //does not require cell connection
 void internal_thread_function(void){
+    while(!startup);
     _gps->begin(9600);   //setup GPS   
     dof->begin();        //DOF begin 
     //never return
