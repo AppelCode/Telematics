@@ -1,4 +1,5 @@
 #include "Particle.h"
+
 #include <CarT.h>
 
 
@@ -17,34 +18,18 @@ void setup() {
 
     Serial.begin(9600);
     while(!Serial);
-
     delay(5000);
-    sd_storage->begin();
-    dof->getTemp();
-    RGB.control(true);
-    RGB.color(0,255,0);
-    
-    for(int i =0; i<=21;i++)
-    {
-    sd_storage->write((char) can_recv_buffer[i]);
-    }
-    sd_storage->write('\n');
-    
-    sd_storage->write(dof->TEMP);
-    sd_storage->write('\n');
-    
-    RGB.color(0,100,100);
-    
-    
 
+    secretStuff->generateKey(key);
+    Serial.print("key: ");
+    Serial.println((int)key);
 
+    Serial.println(System.freeMemory());
+    unsigned char input[128] = "hello world";
+    unsigned char output[128];
 
-    //rts resync (not used)
-    /*
-    resync time everyday
-    if (millis() - lastSync > ONE_DAY_MILLIS) {
-        Particle.syncTime();
-        lastSync = millis();
+    for(int i = 11; i < 128; i++){
+        input[i] = '0';
     }
 
     secretStuff->encryptData(input,output);
