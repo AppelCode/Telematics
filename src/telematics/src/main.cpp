@@ -35,44 +35,6 @@ void setup() {
     
     RGB.color(0,100,100);
     
-    
-
-
-
-    //rts resync (not used)
-    /*
-    resync time everyday
-    if (millis() - lastSync > ONE_DAY_MILLIS) {
-        Particle.syncTime();
-        lastSync = millis();
-    }
-
-    secretStuff->encryptData(input,output);
-    for(int i = 0; i < 11; i++){
-        Serial.printf("%c",output[i]);
-    }
-    secretStuff->decryptData(output,input);
-    Serial.println();
-    for(int i = 0; i < 11; i++){
-        Serial.printf("%c",input[i]);
-    }
-
-    /*
-    //test dof
-    dof.getTemp();          //aquire dof temp
-    float temp = dof.TEMP;  //set to temp
-
-
-    //test sd storage
-    if (sd_storage.write<float>(temp)){
-        Serial.println("bottom of code");
-    } else {
-        Serial.println("did not write to sd!");
-    }
-    */
-
-    
-
 
 }   
 
