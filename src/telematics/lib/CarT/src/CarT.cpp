@@ -83,15 +83,11 @@ void startup_function() {
     Cellular.connect();                                             //connect using twillio
     while(!Cellular.ready());                                       //wait until connected
 #endif
-<<<<<<< HEAD
 
 
     delay(1000);
     //used for testing, allows tera term to set up connection
     
-=======
-    //RGB.control(true);
->>>>>>> ae56fd5392f1ff737ac618f5c8da4ded0b58f5d8
 
     //unlock mutex
 	os_mutex_unlock(mqtt_recv_mutex);
@@ -116,10 +112,6 @@ void server_thread_function(void) {
             awsiot->publish("outTopic/message", "hello world");
             awsiot->subscribe("inTopic/message");
         }
-<<<<<<< HEAD
-=======
-
->>>>>>> ae56fd5392f1ff737ac618f5c8da4ded0b58f5d8
 	while(true) {       
         os_mutex_lock(mqtt_recv_mutex);       
         if (awsiot->isConnected()) {

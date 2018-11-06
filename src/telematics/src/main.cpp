@@ -17,7 +17,6 @@ void setup() {
 
     Serial.begin(9600);
     while(!Serial);
-<<<<<<< HEAD
 
     delay(5000);
     sd_storage->begin();
@@ -46,20 +45,6 @@ void setup() {
     if (millis() - lastSync > ONE_DAY_MILLIS) {
         Particle.syncTime();
         lastSync = millis();
-=======
-    delay(5000);
-
-    secretStuff->generateKey(key);
-    Serial.print("key: ");
-    Serial.println((int)key);
-
-    Serial.println(System.freeMemory());
-    unsigned char input[128] = "hello world";
-    unsigned char output[128];
-
-    for(int i = 11; i < 128; i++){
-        input[i] = '0';
->>>>>>> ae56fd5392f1ff737ac618f5c8da4ded0b58f5d8
     }
 
     secretStuff->encryptData(input,output);
