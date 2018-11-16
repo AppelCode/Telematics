@@ -9,10 +9,10 @@
 #define RECORDS 30
 #define CELLULAR false
 #define SD_STATUS false
-#define DOF_STATUS true
+#define DOF_STATUS false
 #define GPS_STATUS false
 #define CAN_STATUS false
-#define MQTT_STATUS true
+#define MQTT_STATUS false
 #define CAR_ID 2
 
 //start up and thread functions

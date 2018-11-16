@@ -16,7 +16,7 @@ unsigned long lastSync = millis();
 int counter = 0;
 void setup() {
 
-    
+    /*
     Serial.begin(9600);
     delay(5000);
     //os_mutex_lock(mqtt_mutex);
@@ -37,7 +37,8 @@ void setup() {
         /*
         *   test encryption
         *   using known string hello
-        */     
+        */  
+        /*   
         unsigned char input[128];
         unsigned char output[128];
         unsigned char in[128];
@@ -67,6 +68,7 @@ void setup() {
         
 
     }
+    */
     
 
 
