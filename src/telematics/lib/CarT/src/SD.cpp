@@ -29,7 +29,6 @@ void SD::read()
         // read from the file until there's nothing else in it:
         int data;
         while ((data = myFile.read()) >= 0) {
-        Serial.write(data);
         }
         // close the file:
         myFile.close();

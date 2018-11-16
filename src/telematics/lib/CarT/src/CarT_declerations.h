@@ -6,7 +6,14 @@
 #include <Particle-GPS.h>
 #include "cellular_hal.h"
 
-#define CELLULAR true
+#define RECORDS 30
+#define CELLULAR false
+#define SD_STATUS false
+#define DOF_STATUS true
+#define GPS_STATUS false
+#define CAN_STATUS false
+#define MQTT_STATUS true
+#define CAR_ID 2
 
 //start up and thread functions
 extern void startup_function();             //startup function 
@@ -19,12 +26,21 @@ extern system_tick_t lastThreadTime;        //used for thread timing if needed
 //global buffers
 extern char* mqtt_recv_buffer;  //buffer for mqqt_recv data
 extern char* mqtt_send_buffer;  //buffer for mqtt_send data 
-extern int  can_recv_buffer[64];   //buffer for can_recv data
-extern int  can_send_buffer[64];   //buffer for can_send data
-extern void* gps_recv_buffer;   //buffer for gps_recv data
-extern void* dof_recv_buffer;   //buffer for dof_recv data
+extern int**  can_recv_buffer;   //buffer for can_recv data
+extern int**  can_send_buffer;   //buffer for can_send data
+extern void* gps_recv_buffer[2];   //buffer for gps_recv data
+extern float* dof_recv_buffer[9];   //buffer for dof_recv data
+
+extern bool new_can_flag;
+extern bool new_dof_flag;
+extern bool new_gps_flag;
+
+extern int can_frames_in_buffer;
+extern int gps_frames_in_buffer;
+extern int dof_frames_in_buffer;
 
 //mutex locks for buffers
+extern os_mutex_t mqtt_mutex;
 extern os_mutex_t mqtt_recv_mutex;    
 extern os_mutex_t mqtt_send_mutex;   
 extern os_mutex_t can_recv_mutex;    

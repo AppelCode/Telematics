@@ -1,35 +1,47 @@
 #include "CAN.h"
 #include "Serial5/Serial5.h"
 
-CAN::CAN() {
+CAN::CAN() 
+{
     //initialization parameters
 }
 
-void CAN::monitorOBD() {
+void CAN::monitorOBD() 
+{
     Serial5.write("stma\r");
 }
 
-void CAN::begin(){
+int CAN::newData()
+{
+    return(Serial5.available());
+}
+void CAN::begin()
+{
     Serial5.begin(9600); 
     while(!Serial5);      
     Serial5.write("atz\r");
     delay(1200);
 }
-
 //insert buffer and size of buffer
 //returns buffer with recived can data and the size of the buffer
-int CAN::receive(int* buffer, int& size){
+int CAN::receive(int* buffer, int number_bytes_to_write)
+{
     int temp;
     int i = 0;
+    int size = Serial5.available();
 
-    while(Serial5.available())
+    if (size >= number_bytes_to_write)
     {
-        temp = Serial5.read();
-        *(buffer+i) = temp;
-        i++;
+        for(int i = 0; i < number_bytes_to_write; i++)
+        {
+            temp = Serial5.read();
+            *(buffer+i) = temp;
+            i++;
+        }
+    } else {
+        return -1;
     }
-    size = i;
-    return Serial5.available();
+    return size;
 }
 
 /*

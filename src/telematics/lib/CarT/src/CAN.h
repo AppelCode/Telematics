@@ -8,7 +8,8 @@ class CAN
         CAN();
         void begin();
         void monitorOBD();
-        int receive(int* buffer, int& size);
+        int newData();
+        int receive(int* buffer,int number_bytes_to_write);
     private:
 };
 #endif
