@@ -9,7 +9,7 @@
 #define RECORDS 30
 #define CELLULAR false
 #define SD_STATUS false
-#define DOF_STATUS false
+#define DOF_STATUS true
 #define GPS_STATUS false
 #define CAN_STATUS false
 #define MQTT_STATUS false
@@ -28,8 +28,8 @@ extern char* mqtt_recv_buffer;  //buffer for mqqt_recv data
 extern char* mqtt_send_buffer;  //buffer for mqtt_send data 
 extern int**  can_recv_buffer;   //buffer for can_recv data
 extern int**  can_send_buffer;   //buffer for can_send data
-extern void* gps_recv_buffer[2];   //buffer for gps_recv data
-extern float* dof_recv_buffer[9];   //buffer for dof_recv data
+extern void** gps_recv_buffer;   //buffer for gps_recv data
+extern float dof_recv_buffer[RECORDS][9];   //buffer for dof_recv data
 
 extern bool new_can_flag;
 extern bool new_dof_flag;

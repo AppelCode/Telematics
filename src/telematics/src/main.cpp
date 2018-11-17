@@ -1,5 +1,5 @@
 #include "Particle.h"
-
+#include <ArduinoJson.h>
 #include <CarT.h>
 //#include <SparkJson.h>
 
@@ -15,10 +15,20 @@ unsigned char key[32];
 unsigned long lastSync = millis();
 int counter = 0;
 void setup() {
-
-    /*
+    
     Serial.begin(9600);
     delay(5000);
+    /*
+    StaticJsonBuffer<200> jsonBuffer;
+
+    // create an object
+    JsonObject& object1 = jsonBuffer.createObject();
+    object1["hello"] = "world";
+
+    // parse a JSON object
+    char json[] = "{\"hello\":\"world\"}";
+    JsonObject& object2 = jsonBuffer.parseObject(json);
+
     //os_mutex_lock(mqtt_mutex);
     RGB.color(255, 0, 0);
     WITH_LOCK(Serial)
@@ -34,11 +44,11 @@ void setup() {
         //sd_storage->write('\n');
         Serial.println();
         secretStuff->generateKey();
-        /*
-        *   test encryption
-        *   using known string hello
-        */  
-        /*   
+        
+        //test encryption
+        //using known string hello
+  
+          
         unsigned char input[128];
         unsigned char output[128];
         unsigned char in[128];
@@ -76,36 +86,38 @@ void setup() {
 
 void loop() {
 
+
 //process information
-#if (MQTT_STATUS||SD_STATUS)
+///#if (MQTT_STATUS||SD_STATUS)
     //print out new informaiton sent from can bus
-    if (new_can_flag) os_mutex_lock(can_recv_mutex);      //lock out buffer for reading
-    if (new_gps_flag) os_mutex_lock(gps_recv_mutex);      //lock out buffer for reading
-    if (new_dof_flag) os_mutex_lock(dof_recv_mutex);      //lock out buffer for reading
+    
+    if(new_dof_flag){
+        os_mutex_lock(dof_recv_mutex);      //lock out buffer for reading
+    
+        //byte message_id;
+        //message_id = message_id || (new_can_flag << 3);
+        //message_id = message_id || (new_can_flag << 2);
+        //message_id = message_id || (new_can_flag << 1);
+        
 
-    byte message_id;
-    message_id = message_id || (new_can_flag << 3);
-    message_id = message_id || (new_can_flag << 2);
-    message_id = message_id || (new_can_flag << 1);
-
-    //sd write of can messages
-    for(int i =0; i < can_frames_in_buffer; i++)
-    {
-        for(int j = 0; j <8; j++)
+        //sd write of can messages
+        Serial.println("Next recv Frame: ");
+        Serial.println(sizeof(dof_recv_buffer)/4);
+        for(int i =0; i < dof_frames_in_buffer; i++)
         {
-            //write in one frame at a time
-            sd_storage->write((char)can_recv_buffer[i][j]);  
-        }       
+            for(int j = 0; j <9; j++)
+            {
+                //write in one frame at a time
+                Serial.printf("%f, ", dof_recv_buffer[i][j]);  
+            }       
+        }
+        Serial.println();  
+
+        new_dof_flag = false;   //only change when buffer is locked
+        os_mutex_unlock(dof_recv_mutex);
     }
-    sd_storage->write('\n');   
-
-    new_can_flag = false;   //only change when buffer is locked
-    os_mutex_unlock(can_recv_mutex);
-    os_mutex_unlock(gps_recv_mutex);
-    os_mutex_unlock(dof_recv_mutex);
-#endif
-
-    delay(20);
+    
+//#endif
 }
 
 

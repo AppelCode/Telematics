@@ -10,8 +10,8 @@ char* mqtt_recv_buffer;     //buffer for mqqt_recv data
 char* mqtt_send_buffer;     //buffer for mqtt_send data 
 int**  can_recv_buffer;   //buffer for can_recv data
 int**  can_send_buffer;   //buffer for can_send data
-void* gps_recv_buffer[2];      //buffer for gps_recv data
-float* dof_recv_buffer[9];      //buffer for dof_recv data
+void** gps_recv_buffer;      //buffer for gps_recv data
+float dof_recv_buffer[RECORDS][9];      //buffer for dof_recv data
 
 bool new_can_flag = false;
 bool new_dof_flag = false;
@@ -29,6 +29,8 @@ os_mutex_t can_recv_mutex;
 os_mutex_t can_send_mutex;    
 os_mutex_t gps_recv_mutex;     
 os_mutex_t dof_recv_mutex;
+
+os_mutex_t startup_dof_mutex;
 
 CAN* stn = new CAN();
 DOF* dof = new DOF();
@@ -82,6 +84,8 @@ void startup_function() {
     os_mutex_create(&gps_recv_mutex);
     os_mutex_create(&dof_recv_mutex);
 
+    os_mutex_create(&startup_dof_mutex);
+
     //lock mutex
     os_mutex_lock(mqtt_mutex);
 	os_mutex_lock(mqtt_recv_mutex);
@@ -90,6 +94,8 @@ void startup_function() {
     os_mutex_lock(can_send_mutex);
     os_mutex_lock(gps_recv_mutex);
     os_mutex_lock(dof_recv_mutex);
+
+    os_mutex_lock(startup_dof_mutex);
 
     //setup Cellular
 #if CELLULAR
@@ -107,6 +113,8 @@ void startup_function() {
     os_mutex_unlock(can_send_mutex);
     os_mutex_unlock(gps_recv_mutex);
     os_mutex_unlock(dof_recv_mutex);
+
+    os_mutex_unlock(startup_dof_mutex);
     //startup complete               
 }
 
@@ -180,40 +188,53 @@ void CAN_thread_function(void){
 //does not require cell connection
 void internal_thread_function(void){
 
-    //setup gps and dof
-    _gps->begin(9600);   //setup GPS   
-    dof->begin();        //DOF begin 
+    //wait for startup function
+    os_mutex_lock(startup_dof_mutex);
 
-    float* temp_dof_buffer[9];
+    //setup gps and dof
+    dof->begin();        //DOF begin 
+    float temp_dof_buffer[30][9];
     dof_frames_in_buffer = 0;
+    int frames_in_buffer = 0;
     //never return
     while(1){
 
         //set number of records in temp buffer
         if(!new_dof_flag)
         {
-            dof_frames_in_buffer = 1;   //start as first frame read in buffer    
+            frames_in_buffer = 0;   //start as first frame read in buffer    
         } 
-        else
-        {  
-            dof_frames_in_buffer++;      //increase number of records in buffer by one        
-        }
-        //re allocate memory based on number records
-        realloc(temp_dof_buffer,sizeof(float*)*dof_frames_in_buffer);
+        frames_in_buffer++;      //increase number of records in buffer by one        
 
         //dof read all 9 degrees
         dof->getAll();
-        float temp[9] = {dof->GX,dof->GY,dof->GZ,dof->AX,dof->AY,dof->AZ,dof->MX,dof->MY,dof->MZ};
-        memcpy(temp_dof_buffer[dof_frames_in_buffer-1],temp,9);
+
+        temp_dof_buffer[dof_frames_in_buffer-1][0] = 13.4;
+        temp_dof_buffer[dof_frames_in_buffer-1][1] = 13.4;
+        temp_dof_buffer[dof_frames_in_buffer-1][2] = 13.4;
+        temp_dof_buffer[dof_frames_in_buffer-1][3] = 13.4;
+        temp_dof_buffer[dof_frames_in_buffer-1][4] = 13.4;
+        temp_dof_buffer[dof_frames_in_buffer-1][5] = 13.4;
+        temp_dof_buffer[dof_frames_in_buffer-1][6] = 13.4;
+        temp_dof_buffer[dof_frames_in_buffer-1][7] = 13.4;
+        temp_dof_buffer[dof_frames_in_buffer-1][8] = 13.4;
+
 
         //if dof_buffer not in use write to it, if it is then grab another record
         if(os_mutex_trylock(dof_recv_mutex))
         {
             //copy temp_dof_buffer to dof_recv_buffer
-            memcpy(dof_recv_buffer,temp_dof_buffer,dof_frames_in_buffer);
+            dof_frames_in_buffer = frames_in_buffer;
+            Serial.println(); 
+            for(int j = 0; j<10; j++)
+            {
+                memcpy(&dof_recv_buffer[j], &temp_dof_buffer[j], sizeof(temp_dof_buffer[0]));
+            }
             new_dof_flag = true;
-            os_mutex_lock(dof_recv_mutex);
+            os_mutex_unlock(dof_recv_mutex);
         }
+
+        
    }
 
 }
