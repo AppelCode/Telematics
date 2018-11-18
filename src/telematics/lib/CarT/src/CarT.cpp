@@ -31,7 +31,8 @@ os_mutex_t can_send_mutex;
 os_mutex_t gps_recv_mutex;     
 os_mutex_t dof_recv_mutex;
 
-os_mutex_t startup_dof_mutex;
+os_mutex_t startup_internal_mutex;
+os_mutex_t startup_can_mutex;
 
 CAN* stn = new CAN();
 DOF* dof = new DOF();
@@ -85,7 +86,8 @@ void startup_function() {
     os_mutex_create(&gps_recv_mutex);
     os_mutex_create(&dof_recv_mutex);
 
-    os_mutex_create(&startup_dof_mutex);
+    os_mutex_create(&startup_internal_mutex);
+    os_mutex_create(&startup_can_mutex);
 
     //lock mutex
     os_mutex_lock(mqtt_mutex);
@@ -96,7 +98,8 @@ void startup_function() {
     os_mutex_lock(gps_recv_mutex);
     os_mutex_lock(dof_recv_mutex);
 
-    os_mutex_lock(startup_dof_mutex);
+    os_mutex_lock(startup_internal_mutex);
+    os_mutex_lock(startup_can_mutex);
 
     //setup Cellular
 #if CELLULAR
@@ -115,7 +118,8 @@ void startup_function() {
     os_mutex_unlock(gps_recv_mutex);
     os_mutex_unlock(dof_recv_mutex);
 
-    os_mutex_unlock(startup_dof_mutex);
+    os_mutex_unlock(startup_internal_mutex);
+    os_mutex_unlock(startup_can_mutex);
     //startup complete               
 }
 
@@ -123,7 +127,7 @@ void startup_function() {
 //requires cell connection
 void server_thread_function(void) {
   
-    while(!Cellular.ready())
+    while(!Cellular.ready())            //wait for cell connection
     awsiot->connect("sparkclient");     //setup AWS connection
         if (awsiot->isConnected()) {        
             awsiot->publish("outTopic/message", "hello world"); //send hello world confirmation
@@ -153,6 +157,8 @@ void server_thread_function(void) {
 
 //does not require cell connection
 void CAN_thread_function(void){
+    os_mutex_lock(startup_can_mutex);
+
     int buffer[8];
     int size = 0;
     int current_frames;
@@ -190,7 +196,7 @@ void CAN_thread_function(void){
 void internal_thread_function(void){
 
     //wait for startup function
-    os_mutex_lock(startup_dof_mutex);
+    os_mutex_lock(startup_internal_mutex);
 
     //setup gps and dof
     dof->begin();                   //DOF begin communication

@@ -10,45 +10,35 @@ STARTUP(startup_function());//setup stratup function and block everything untill
 
 //holds encryption key
 unsigned char key[32];
-
 #define ONE_DAY_MILLIS (24 * 60 * 60 * 1000)
 unsigned long lastSync = millis();
 int counter = 0;
+
+
+//create json buffer for parsing data 
+const size_t bufferSize = 3*JSON_ARRAY_SIZE(2) + JSON_OBJECT_SIZE(7);
+DynamicJsonBuffer jsonBuffer(bufferSize);
+JsonObject& root;
+JsonArray& CAN_data;
+JsonArray& GPS_data;
+JsonArray& DOF_data;
+
 void setup() {
     
-    Serial.begin(9600);
-    delay(5000);
-    /*
-    StaticJsonBuffer<200> jsonBuffer;
+    Serial.begin(9600); //start Serial output
+    delay(5000);        //wait for user, needs to be updated
 
-    // create an object
-    JsonObject& object1 = jsonBuffer.createObject();
-    object1["hello"] = "world";
+    //initialize the json parser
+    JsonObject& root = jsonBuffer.createObject();
+    JsonArray& CAN_data = root.createNestedArray("CAN_data");
+    JsonArray& GPS_data = root.createNestedArray("GPS_data");
+    JsonArray& DOF_data = root.createNestedArray("DOF_data");
 
-    // parse a JSON object
-    char json[] = "{\"hello\":\"world\"}";
-    JsonObject& object2 = jsonBuffer.parseObject(json);
-
-    //os_mutex_lock(mqtt_mutex);
-    RGB.color(255, 0, 0);
     WITH_LOCK(Serial)
     {
-        RGB.color(0, 255, 0);
-        pinMode(D6,OUTPUT);
-        digitalWrite(D6,LOW);
-        //sd_storage->begin();
-        //dof->getTemp();
 
-
-        //sd_storage->write(dof->TEMP);
-        //sd_storage->write('\n');
-        Serial.println();
         secretStuff->generateKey();
-        
-        //test encryption
-        //using known string hello
-  
-          
+
         unsigned char input[128];
         unsigned char output[128];
         unsigned char in[128];
@@ -78,10 +68,7 @@ void setup() {
         
 
     }
-    */
     
-
-
 }   
 
 void loop() {
@@ -98,10 +85,14 @@ void loop() {
     message_id = message_id || (new_can_flag << 3);
     message_id = message_id || (new_can_flag << 2);
     message_id = message_id || (new_can_flag << 1);
-    
+
+    root["messageid"] = message_id;
+    root["CAN_frames"] = can_frames_in_buffer;
+    root["DOF_frames"] = dof_frames_in_buffer;
+    root["GPS_frames"] = gps_frames_in_buffer;
     if(new_dof_flag){
     
-        for(int i =0; i < dof_frames_in_buffer; i++)
+        for(int i =0; i < can_frames_in_buffer; i++)
         {
 
             //write each array of records to json structure
@@ -109,18 +100,18 @@ void loop() {
         }
         Serial.println();  
 
-        new_dof_flag = false;   //only change when buffer is locked
+        new_can_flag = false;   //only change when buffer is locked
     }
 
     if(new_can_flag){
     
-        for(int i =0; i < dof_frames_in_buffer; i++)
+        for(int i =0; i < gps_frames_in_buffer; i++)
         {
             //write each array of records to json structure
         }
         Serial.println();  
 
-        new_dof_flag = false;   //only change when buffer is locked
+        new_gps_flag = false;   //only change when buffer is locked
     }
 
     if(new_gps_flag){
