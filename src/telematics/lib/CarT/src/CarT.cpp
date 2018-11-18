@@ -8,15 +8,15 @@ system_tick_t lastThreadTime = 0;
 //initialize buffers
 char* mqtt_recv_buffer;     //buffer for mqqt_recv data
 char* mqtt_send_buffer;     //buffer for mqtt_send data 
-int**  can_recv_buffer;   //buffer for can_recv data
-int**  can_send_buffer;   //buffer for can_send data
-void gps_recv_buffer[RECORDS][2];      //buffer for gps_recv data
+char**  can_recv_buffer;   //buffer for can_recv data
+char**  can_send_buffer;   //buffer for can_send data
+float gps_recv_buffer[RECORDS][2];      //buffer for gps_recv data
 float dof_recv_buffer[RECORDS][9];      //buffer for dof_recv data
 
 bool new_can_flag = false;
 bool new_dof_flag = false;
 bool new_gps_flag = false;
-bool new_mqtt_send_flag; = false;
+bool new_mqtt_send_flag = false;
 
 int can_frames_in_buffer = 0;
 int gps_frames_in_buffer = 0;
@@ -117,6 +117,7 @@ void startup_function() {
     os_mutex_unlock(can_send_mutex);
     os_mutex_unlock(gps_recv_mutex);
     os_mutex_unlock(dof_recv_mutex);
+    os_mutex_unlock(mqtt_mutex);
 
     os_mutex_unlock(startup_internal_mutex);
     os_mutex_unlock(startup_can_mutex);
@@ -132,30 +133,20 @@ void server_thread_function(void) {
         if (awsiot->isConnected()) {        
             awsiot->publish("outTopic/message", "hello world"); //send hello world confirmation
             awsiot->subscribe("inTopic/message");               //subscribe to topic to recv messages
-        }
-    os_mutex_unlock(mqtt_mutex);
+        }   
 	while(true) { 
         //check for any new recieve messages      
-        os_mutex_lock(mqtt_recv_mutex);                 //grab lock    
-        if (awsiot->isConnected()) {                    //check for connection     
-            awsiot->loop();                             //look for any received messages
+        os_mutex_lock(mqtt_mutex);                 //grab lock    
+        if (awsiot->isConnected()) {               //check for connection     
+            awsiot->loop();                        //look for any received messages
         }
-        os_mutex_unlock(mqtt_recv_mutex);               //release lock
-
-        //publish new message
-        os_mutex_lock(mqtt_send_mutex);                 //grab lock
-        if (strlen(new_mqtt_send_flag){                 //if new message has arrived in buffer
-            awsiot->publish("cart/2",mqtt_send_buffer); //send new message
-        } 
-        new_mqtt_send_flag = false;                     //let everyone know that message is gone
-        os_mutex_unlock(mqtt_send_mutex);               //give up lock  
+        os_mutex_unlock(mqtt_mutex);               //release lock
 
         os_thread_delay_until(&lastThreadTime, 10);     //delay thread
 	} 
 
 }
 
-//does not require cell connection
 void CAN_thread_function(void){
     os_mutex_lock(startup_can_mutex);
 
@@ -181,9 +172,9 @@ void CAN_thread_function(void){
             //fill can_recv_buffer
             do
             {      
-                size = stn->receive(buffer,8);                              //add next data frame into temp buffer
+                size = stn->receive(buffer,8);                             //add next data frame into temp buffer
                 memcpy(can_recv_buffer[can_frames_in_buffer],buffer,8);    //add to recvbuffer
-                can_frames_in_buffer ++;                                    //increase number of frames in buffer     
+                can_frames_in_buffer ++;                                   //increase number of frames in buffer     
             }
             while (size%8==0);
             new_can_flag = true;
@@ -256,7 +247,7 @@ void internal_thread_function(void){
 #if GPS_STATUS
 
         if(os_mutex_trylock(gps_recv_mutex))
-        {}
+        {
             gps_frames_in_buffer = g_frames_in_buffer;  //copy temp_gps_buffer to gps_recv_buffer
             for(int j = 0; j<3; j++)
             {
@@ -265,9 +256,8 @@ void internal_thread_function(void){
             new_dof_flag = true;                        //new information is in the recv_buffer
             os_mutex_unlock(dof_recv_mutex);
         }
-        
+#endif       
    }
-
 }
 
 
