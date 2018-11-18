@@ -28,12 +28,13 @@ extern char* mqtt_recv_buffer;  //buffer for mqqt_recv data
 extern char* mqtt_send_buffer;  //buffer for mqtt_send data 
 extern int**  can_recv_buffer;   //buffer for can_recv data
 extern int**  can_send_buffer;   //buffer for can_send data
-extern void** gps_recv_buffer;   //buffer for gps_recv data
+extern void gps_recv_buffer[RECORDS][2];   //buffer for gps_recv data
 extern float dof_recv_buffer[RECORDS][9];   //buffer for dof_recv data
 
 extern bool new_can_flag;
 extern bool new_dof_flag;
 extern bool new_gps_flag;
+extern bool new_mqtt_send_flag;
 
 extern int can_frames_in_buffer;
 extern int gps_frames_in_buffer;

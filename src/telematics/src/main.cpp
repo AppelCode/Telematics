@@ -89,33 +89,61 @@ void loop() {
 
 //process information
 ///#if (MQTT_STATUS||SD_STATUS)
-    //print out new informaiton sent from can bus
+
+    os_mutex_lock(dof_recv_mutex); 
+    os_mutex_lock(gps_recv_mutex); 
+    os_mutex_lock(can_recv_mutex);   
+    //meesage type
+    //byte message_id;
+    //message_id = message_id || (new_can_flag << 3);
+    //message_id = message_id || (new_can_flag << 2);
+    //message_id = message_id || (new_can_flag << 1);
     
     if(new_dof_flag){
-        os_mutex_lock(dof_recv_mutex);      //lock out buffer for reading
     
-        //byte message_id;
-        //message_id = message_id || (new_can_flag << 3);
-        //message_id = message_id || (new_can_flag << 2);
-        //message_id = message_id || (new_can_flag << 1);
-        
-
-        //sd write of can messages
-        Serial.println("Next recv Frame: ");
-        Serial.println(sizeof(dof_recv_buffer)/4);
         for(int i =0; i < dof_frames_in_buffer; i++)
         {
-            for(int j = 0; j <9; j++)
-            {
-                //write in one frame at a time
-                Serial.printf("%f, ", dof_recv_buffer[i][j]);  
-            }       
+
+            //write each array of records to json structure
+            //dof_recv_buffer[i][j]);      
         }
         Serial.println();  
 
         new_dof_flag = false;   //only change when buffer is locked
-        os_mutex_unlock(dof_recv_mutex);
     }
+
+    if(new_can_flag){
+    
+        for(int i =0; i < dof_frames_in_buffer; i++)
+        {
+            //write each array of records to json structure
+        }
+        Serial.println();  
+
+        new_dof_flag = false;   //only change when buffer is locked
+    }
+
+    if(new_gps_flag){
+    
+        for(int i =0; i < dof_frames_in_buffer; i++)
+        {
+
+            //write each array of records to json structure      
+        }
+        Serial.println();  
+
+        new_dof_flag = false;   //only change when buffer is locked
+    }
+
+    os_mutex_unlock(dof_recv_mutex);
+    os_mutex_unlock(gps_recv_mutex);
+    os_mutex_unlock(can_recv_mutex);
+
+    os_mutex_lock(mqtt_mutex);
+
+    //copy json char* into send buffer
+    new_mqtt_send_flag = true;
+    os_mutex_unlock(mqtt_mutex);
     
 //#endif
 }
