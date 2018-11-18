@@ -14,6 +14,7 @@ unsigned char key[32];
 unsigned long lastSync = millis();
 int counter = 0;
 
+<<<<<<< HEAD
 
 //create json buffer for parsing data 
 const size_t bufferSize = 3*JSON_ARRAY_SIZE(2) + JSON_OBJECT_SIZE(7);
@@ -22,6 +23,59 @@ JsonObject& root;
 JsonArray& CAN_data;
 JsonArray& GPS_data;
 JsonArray& DOF_data;
+=======
+void jsonMessage() {
+  //can't get dynamic size working well
+  //const size_t bufferSize = 3*JSON_ARRAY_SIZE(3) + JSON_OBJECT_SIZE(5);
+  //DynamicJsonBuffer jsonBuffer(bufferSize);
+  
+  DynamicJsonBuffer jsonBuffer;
+   
+  JsonObject& jsonMsg = jsonBuffer.createObject();
+  
+  jsonMsg["time"] = millis();
+  jsonMsg["imu"] = "9DOF";
+
+
+  JsonArray& gyro = jsonMsg.createNestedArray("gyro");
+  dof->getGyr();
+  gyro.add(dof->GX);
+  gyro.add(dof->GY);
+  gyro.add(dof->GZ);
+
+  JsonArray& accl = jsonMsg.createNestedArray("accl");
+  dof->getAcc();
+  accl.add(dof->AX);
+  accl.add(dof->AY);
+  accl.add(dof->AZ);
+
+  JsonArray& magn = jsonMsg.createNestedArray("magn");
+  dof->getMag();
+  magn.add(dof->MX);
+  magn.add(dof->MY);
+  magn.add(dof->MZ);
+  
+  jsonMsg["gps"] = "GPS";
+  JsonArray& lat = jsonMsg.createNestedArray("lat");
+  //gps->getCoord();
+  //lat.add("this dont work");
+  //JsonArray& lon = jsonMsg.createNestedArray("lon");
+  //lon.add("this dont work");
+
+
+  //Serial.println();
+  //jsonMsg.prettyPrintTo(Serial);
+  //Serial.println();
+  
+  //this doesn't work
+  //jsonMsg.prettyPrintTo(output);
+  //sd_storage->begin();
+  //sd_storage->write(output);
+  
+  //send to message to aws
+  //not implemeted
+}
+>>>>>>> 36e6e6141c4b72cffbb0c2f19c477397d4666b84
 
 void setup() {
     
