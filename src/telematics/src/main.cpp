@@ -94,10 +94,10 @@ void loop() {
     os_mutex_lock(gps_recv_mutex); 
     os_mutex_lock(can_recv_mutex);   
     //meesage type
-    //byte message_id;
-    //message_id = message_id || (new_can_flag << 3);
-    //message_id = message_id || (new_can_flag << 2);
-    //message_id = message_id || (new_can_flag << 1);
+    byte message_id;
+    message_id = message_id || (new_can_flag << 3);
+    message_id = message_id || (new_can_flag << 2);
+    message_id = message_id || (new_can_flag << 1);
     
     if(new_dof_flag){
     
