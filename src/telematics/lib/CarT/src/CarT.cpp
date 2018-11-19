@@ -165,11 +165,8 @@ void CAN_thread_function(void){
 
         //lock out for writing
         stn->GetRPM();
-        stn->receive(can_temp_buffer[0],8);
 
-        new_can_flag = true;
-
-        if(os_mutex_trylock(can_recv_mutex))
+        if(os_mutex_trylock(can_recv_mutex) && stn->receive(can_temp_buffer[0],8))
         {
             //copy temp_dof_buffer to dof_recv_buffer
             can_frames_in_buffer = 1;  //copy temp_dof_buffer to dof_recv_buffer
