@@ -6,20 +6,33 @@
 system_tick_t lastThreadTime = 0;
 
 //initialize buffers
-char* mqtt_recv_buffer;  //buffer for mqqt_recv data
-char* mqtt_send_buffer;  //buffer for mqtt_send data 
-int  can_recv_buffer[64];   //buffer for can_recv data
-int  can_send_buffer[64];   //buffer for can_send data
-void* gps_recv_buffer;   //buffer for gps_recv data
-void* dof_recv_buffer;   //buffer for dof_recv data
+char* mqtt_recv_buffer;     //buffer for mqqt_recv data
+char* mqtt_send_buffer;     //buffer for mqtt_send data 
+char**  can_recv_buffer;   //buffer for can_recv data
+char**  can_send_buffer;   //buffer for can_send data
+float gps_recv_buffer[RECORDS][2];      //buffer for gps_recv data
+float dof_recv_buffer[RECORDS][9];      //buffer for dof_recv data
+
+bool new_can_flag = false;
+bool new_dof_flag = false;
+bool new_gps_flag = false;
+bool new_mqtt_send_flag = false;
+
+int can_frames_in_buffer = 0;
+int gps_frames_in_buffer = 0;
+int dof_frames_in_buffer = 0;
 
 //mutex locks for buffers
+os_mutex_t mqtt_mutex;
 os_mutex_t mqtt_recv_mutex;    
 os_mutex_t mqtt_send_mutex;   
 os_mutex_t can_recv_mutex;    
 os_mutex_t can_send_mutex;    
 os_mutex_t gps_recv_mutex;     
 os_mutex_t dof_recv_mutex;
+
+os_mutex_t startup_internal_mutex;
+os_mutex_t startup_can_mutex;
 
 CAN* stn = new CAN();
 DOF* dof = new DOF();
@@ -29,12 +42,16 @@ Gps* _gps = new Gps(&Serial1);
 //Gga* gga = new Gga(*_gps);
 AWS* awsiot = new AWS("a3mb0mz6legbs8.iot.us-east-2.amazonaws.com", 8883, callback);
 
-bool startup = false;
-
 //setup threads
-Thread server_thread("server_thread", server_thread_function, OS_THREAD_PRIORITY_DEFAULT,20*1024);
-Thread CAN_thread("CAN_thread", CAN_thread_function, OS_THREAD_PRIORITY_DEFAULT,4*1024);
-Thread internal_thread("Internal_thread", internal_thread_function, OS_THREAD_PRIORITY_DEFAULT,4*1024);
+#if MQTT_STATUS
+Thread server_thread("server_thread", server_thread_function, OS_THREAD_PRIORITY_DEFAULT,6*1024);
+#endif
+#if CAN_STATUS
+Thread CAN_thread("CAN_thread", CAN_thread_function, OS_THREAD_PRIORITY_DEFAULT,3*1024);
+#endif
+#if DOF_STATUS || GPS_STATUS
+Thread internal_thread("Internal_thread", internal_thread_function, OS_THREAD_PRIORITY_DEFAULT,3*1024);
+#endif
 
 // recieve message handler for server_thread
 //used for handling all subscription messages
@@ -61,6 +78,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void startup_function() {
 
      // Create mutexs
+    os_mutex_create(&mqtt_mutex);
 	os_mutex_create(&mqtt_recv_mutex);
     os_mutex_create(&mqtt_send_mutex);
     os_mutex_create(&can_recv_mutex);
@@ -68,13 +86,20 @@ void startup_function() {
     os_mutex_create(&gps_recv_mutex);
     os_mutex_create(&dof_recv_mutex);
 
+    os_mutex_create(&startup_internal_mutex);
+    os_mutex_create(&startup_can_mutex);
+
     //lock mutex
+    os_mutex_lock(mqtt_mutex);
 	os_mutex_lock(mqtt_recv_mutex);
     os_mutex_lock(mqtt_send_mutex);
     os_mutex_lock(can_recv_mutex);
     os_mutex_lock(can_send_mutex);
     os_mutex_lock(gps_recv_mutex);
     os_mutex_lock(dof_recv_mutex);
+
+    os_mutex_lock(startup_internal_mutex);
+    os_mutex_lock(startup_can_mutex);
 
     //setup Cellular
 #if CELLULAR
@@ -83,6 +108,7 @@ void startup_function() {
     Cellular.connect();                                             //connect using twillio
     while(!Cellular.ready());                                       //wait until connected
 #endif
+    RGB.control(true);
 
     //unlock mutex
 	os_mutex_unlock(mqtt_recv_mutex);
@@ -91,57 +117,147 @@ void startup_function() {
     os_mutex_unlock(can_send_mutex);
     os_mutex_unlock(gps_recv_mutex);
     os_mutex_unlock(dof_recv_mutex);
-    //startup complete  
+    os_mutex_unlock(mqtt_mutex);
 
-    startup = true;               
+    os_mutex_unlock(startup_internal_mutex);
+    os_mutex_unlock(startup_can_mutex);
+    //startup complete               
 }
 
 //AWS server thread that poles for MQTT requests on different subscribed nodes
 //requires cell connection
 void server_thread_function(void) {
-    
-    while(!startup);
-    RGB.control(true);
+  
+    while(!Cellular.ready())            //wait for cell connection
     awsiot->connect("sparkclient");     //setup AWS connection
-        if (awsiot->isConnected()) {
-            awsiot->publish("outTopic/message", "hello world");
-            awsiot->subscribe("inTopic/message");
+        if (awsiot->isConnected()) {        
+            awsiot->publish("outTopic/message", "hello world"); //send hello world confirmation
+            awsiot->subscribe("inTopic/message");               //subscribe to topic to recv messages
+        }   
+	while(true) { 
+        //check for any new recieve messages      
+        os_mutex_lock(mqtt_mutex);                 //grab lock    
+        if (awsiot->isConnected()) {               //check for connection     
+            awsiot->loop();                        //look for any received messages
         }
-	while(true) {       
-        os_mutex_lock(mqtt_recv_mutex);       
-        if (awsiot->isConnected()) {
-            
-            awsiot->loop();
-        }
-        os_mutex_unlock(mqtt_recv_mutex);
-        os_thread_delay_until(&lastThreadTime, 10);
+        os_mutex_unlock(mqtt_mutex);               //release lock
+
+        os_thread_delay_until(&lastThreadTime, 10);     //delay thread
 	} 
+
 }
 
-//does not require cell connection
 void CAN_thread_function(void){
+    os_mutex_lock(startup_can_mutex);
 
-    while(!startup);
-    stn->begin();        //setup CAN
+    int buffer[8];
     int size = 0;
-    os_mutex_lock(can_recv_mutex);
-    stn->receive(can_recv_buffer,size);
-    os_mutex_unlock(can_recv_mutex);
-    delay(20);
-    //never return
-    while(1){ 
+    int current_frames;
+
+    stn->begin();
+
+    while(1){
+
+        //lock out for writing
+        os_mutex_lock(can_recv_mutex); 
+        current_frames = stn->newData();
+        if (current_frames!=0 && current_frames%8==0)
+        {   
+            //if data has been read clear buffer
+            if(!new_can_flag){
+                memset(can_recv_buffer,0,RECORDS);
+                can_frames_in_buffer = 0;
+            }
+
+            //fill can_recv_buffer
+            do
+            {      
+                size = stn->receive(buffer,8);                             //add next data frame into temp buffer
+                memcpy(can_recv_buffer[can_frames_in_buffer],buffer,8);    //add to recvbuffer
+                can_frames_in_buffer ++;                                   //increase number of frames in buffer     
+            }
+            while (size%8==0);
+            new_can_flag = true;
+        }
+        os_mutex_unlock(can_recv_mutex);
     }
 }
 
 //does not require cell connection
 void internal_thread_function(void){
-    while(!startup);
-    _gps->begin(9600);   //setup GPS   
-    dof->begin();        //DOF begin 
-    //never return
-   while(1){
-   }
 
+    //wait for startup function
+    os_mutex_lock(startup_internal_mutex);
+
+    //setup gps and dof
+    dof->begin();                   //DOF begin communication
+    float temp_dof_buffer[30][9];   //temp buffer to store dof data
+    float temp_gps_buffer[30][2];   //temp buffer to store gps data
+    dof_frames_in_buffer = 0;       //set frames to 0, ie no records yet
+    gps_frames_in_buffer = 0;       //set frames to 0, ie no records yet
+    int d_frames_in_buffer = 0;     //set frames to 0, ie no records yet
+    int g_frames_in_buffer = 0; //set frames to 0, ie no records yet
+    //never return
+    while(1){
+
+        //set number of records in temp buffer
+        if(!new_dof_flag)
+        {
+            d_frames_in_buffer = 0;     //start as first frame read in buffer    
+        } 
+        d_frames_in_buffer++;           //increase number of records in buffer by one      
+
+        if(!new_gps_flag)
+        {
+            g_frames_in_buffer = 0;     //start as first frame read in buffer    
+        } 
+        g_frames_in_buffer++;           //increase number of records in buffer by one    
+
+        //dof read all 9 degrees
+        dof->getAll();
+
+        //stroe dof values in temp buffer at current record
+        temp_dof_buffer[d_frames_in_buffer-1][0] = 13.4;
+        temp_dof_buffer[d_frames_in_buffer-1][1] = 13.4;
+        temp_dof_buffer[d_frames_in_buffer-1][2] = 13.4;
+        temp_dof_buffer[d_frames_in_buffer-1][3] = 13.4;
+        temp_dof_buffer[d_frames_in_buffer-1][4] = 13.4;
+        temp_dof_buffer[d_frames_in_buffer-1][5] = 13.4;
+        temp_dof_buffer[d_frames_in_buffer-1][6] = 13.4;
+        temp_dof_buffer[d_frames_in_buffer-1][7] = 13.4;
+        temp_dof_buffer[d_frames_in_buffer-1][8] = 13.4;
+
+        //repeat for gps
+
+
+        //transfer data to main buffer when locks are avaliable
+#if DOF_STATUS
+        if(os_mutex_trylock(dof_recv_mutex))
+        {
+            //copy temp_dof_buffer to dof_recv_buffer
+            dof_frames_in_buffer = d_frames_in_buffer;  //copy temp_dof_buffer to dof_recv_buffer
+            for(int j = 0; j<10; j++)
+            {
+                memcpy(&dof_recv_buffer[j], &temp_dof_buffer[j], sizeof(temp_dof_buffer[0]));
+            }
+            new_dof_flag = true;                        //new information is in the recv_buffer
+            os_mutex_unlock(dof_recv_mutex);
+        }
+#endif
+#if GPS_STATUS
+
+        if(os_mutex_trylock(gps_recv_mutex))
+        {
+            gps_frames_in_buffer = g_frames_in_buffer;  //copy temp_gps_buffer to gps_recv_buffer
+            for(int j = 0; j<3; j++)
+            {
+                memcpy(&gps_recv_buffer[j], &temp_gps_buffer[j], sizeof(temp_gps_buffer[0]));
+            }
+            new_dof_flag = true;                        //new information is in the recv_buffer
+            os_mutex_unlock(dof_recv_mutex);
+        }
+#endif       
+   }
 }
 
 
