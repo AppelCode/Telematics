@@ -7,7 +7,11 @@ class CAN
     public:
         CAN();
         void begin();
-        void monitorOBD();
+        void monitorCAN();
+        void getRPM();
+        void ClearFlowControl();
+        void SetHS();
+        void SendFrame(int header, int message);
         int receive(int* buffer, int& size);
     private:
 };
