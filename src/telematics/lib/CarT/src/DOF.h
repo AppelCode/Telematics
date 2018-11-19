@@ -2,8 +2,6 @@
 #define DOF_H
 #include "SparkFunLSM9DS1.h"
 
-//not sure how functional this code is yet but it's a start. Needs to be tested more.
-
 class  DOF {
 	
 public:
@@ -14,7 +12,7 @@ public:
 	float heading, pitch, roll;
 	float TEMP; //temperature
 	
-	String getAll(); //string to get everything in one place in JSON
+	void getAll(); //this now gets all the values
 	float *dofARRAY();
 
 	void begin();
