@@ -158,14 +158,28 @@ void DOF::getAtt()
   roll  *= 180.0 / M_PI;
 }
 
-String DOF::getAll()
+void DOF::getAll()
 { 
-	imu.readAccel();
-	imu.readMag(); 
-	imu.readTemp();
-	imu.readGyro();
-
 	
+	imu.readAccel();
+	AX=imu.calcMag(imu.ax);
+  	AY=imu.calcMag(imu.ay);
+  	AZ=imu.calcMag(imu.az);
+	
+	imu.readMag();
+	MX=imu.calcMag(imu.mx);
+  	MY=imu.calcMag(imu.my);
+        MZ=imu.calcMag(imu.mz);
+	
+        imu.readGyro();
+	GX=imu.calcGyro(imu.gx);
+        GY=imu.calcGyro(imu.gy);
+        GZ=imu.calcGyro(imu.gz);
+	
+        imu.readTemp();
+	TEMP = (imu.temperature/256 +25.0);
+	
+	/*
 	String returnstring= "{\t\"dofData\":{"
                "\"time\":" +  String(Time.timeStr()) + ", " +
                "\"ax\":" +  String(imu.ax) + ", " +
@@ -181,7 +195,7 @@ String DOF::getAll()
                "\n}";
 			
 			
-	return returnstring;
+	return returnstring;*/
 }
 
 float *DOF::dofARRAY()
