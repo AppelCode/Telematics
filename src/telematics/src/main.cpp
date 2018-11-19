@@ -14,7 +14,47 @@ unsigned char key[32];
 unsigned long lastSync = millis();
 int counter = 0;
 
+    int size;
 
+<<<<<<< HEAD
+    Serial.begin(9600);
+    while(!Serial);
+    delay(5000);
+    sd_storage->begin();
+    dof->getTemp();
+
+    RGB.control(true);
+    RGB.color(0,255,0);
+
+    stn->begin();
+    stn->monitorCAN();
+    stn->SetProtocol();
+    stn->getRPM();
+    while(!Serial5.available()){
+        Serial.println("no can messages");
+    }
+
+    os_mutex_lock(can_recv_mutex);
+    stn->receive(can_recv_buffer,size);
+
+    os_mutex_unlock(can_recv_buffer);
+   
+
+    for(int i =0; i<=21;i++)
+    {
+    Serial.print(((char) can_recv_buffer[i]));
+    }
+    Serial.println();
+    
+    //sd_storage->write(dof->TEMP);
+    //sd_storage->write('\n');
+
+    
+
+    RGB.color(0,100,100);
+    
+    /*
+=======
 //create json buffer for parsing data 
 DynamicJsonBuffer jsonBuffer;
 JsonObject* root;
@@ -54,6 +94,7 @@ void setup() {
 
     WITH_LOCK(Serial)
     {
+>>>>>>> 85fa079e0dd606f8ae7147f9815cf11c52fdd476
 
         secretStuff->generateKey();
 
@@ -69,11 +110,16 @@ void setup() {
 
         memcpy(input,"hello",strlen("hello"));
 
+<<<<<<< HEAD
+    */
+
+=======
         Serial.print("Encrypted Data: ");
         secretStuff->encryptData(input,output);
         for(int i = 0; i < 16; i++){
             Serial.printf("%d",output[i]);
         }
+>>>>>>> 85fa079e0dd606f8ae7147f9815cf11c52fdd476
 
         Serial.println();
 

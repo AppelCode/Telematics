@@ -6,10 +6,29 @@ CAN::CAN()
     //initialization parameters
 }
 
-void CAN::monitorCAN() 
-{
-    Serial5.write("stma\r");
+void CAN::monitorCAN(){
+    Serial5.write("STMA\r");
 }
+
+void CAN::SetHS(){
+    Serial5.write("ATSP6\r");
+}
+
+void CAN::SendFrame(int header, int message){
+    Serial5.write("AT"header"\r");
+    Serial5.write("AT"message"\r");
+
+}
+// Creates filter to send message to 7E0 and receive from 7E8
+void CAN::getRPM(){
+    Serial5.write("ATCAF0\r");  // set auto format off (use all 8 bytes now)
+
+}
+
+// after retrieving message from specific IDs, clear filter for specific ID
+void CAN::ClearFlowControl(){
+    Serial5.write("STCCFCP\r");
+
 void CAN::SetHS()
 {
     Serial5.write("ATSP6\r");
@@ -62,6 +81,10 @@ int CAN::receive(int* buffer, int number_bytes_to_write)
     }
     return size;
 }
+
+
+
+
 
 /*
 char CAN::receive(){
