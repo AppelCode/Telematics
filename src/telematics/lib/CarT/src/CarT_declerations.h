@@ -3,16 +3,16 @@
 #include "DOF.h"
 #include "CAN.h"
 #include "SD.h"
-#include <Particle-GPS.h>
+#include <Adafruit_GPS.h>
 #include "cellular_hal.h"
 
 #define RECORDS 30
-#define CELLULAR true
+#define CELLULAR false
 #define SD_STATUS true
 #define DOF_STATUS true
 #define GPS_STATUS true
 #define CAN_STATUS true
-#define MQTT_STATUS true
+#define MQTT_STATUS false
 #define CAR_ID 2
 
 //start up and thread functions
@@ -26,8 +26,8 @@ extern system_tick_t lastThreadTime;        //used for thread timing if needed
 //global buffers
 extern char* mqtt_recv_buffer;  //buffer for mqqt_recv data
 extern char* mqtt_send_buffer;  //buffer for mqtt_send data 
-extern char**  can_recv_buffer;   //buffer for can_recv data
-extern char**  can_send_buffer;   //buffer for can_send data
+extern int can_recv_buffer[RECORDS][8];   //buffer for can_recv data
+extern int can_send_buffer[RECORDS][8];   //buffer for can_send data
 extern float gps_recv_buffer[RECORDS][2];   //buffer for gps_recv data
 extern float dof_recv_buffer[RECORDS][9];   //buffer for dof_recv data
 
@@ -55,8 +55,6 @@ extern bool startup;
 extern CAN* stn;
 extern DOF* dof;
 extern SD* sd_storage;
-extern Gps* _gps;
-extern Gga* gga;
 extern Crypt* secretStuff;
 
 extern void callback(char* topic, byte* payload, unsigned int length);

@@ -6,10 +6,28 @@ CAN::CAN()
     //initialization parameters
 }
 
-void CAN::monitorOBD() 
+void CAN::monitorCAN() 
 {
     Serial5.write("stma\r");
 }
+void CAN::SetHS()
+{
+    Serial5.write("ATSP6\r");
+}
+
+void CAN::GetRPM()
+{
+    Serial5.write("ATSH7DF\r");
+    Serial5.write("010C\r");
+}
+
+void CAN::GetSpeed()
+{
+    Serial5.write("ATSH7DF\r");
+    Serial5.write("010D\r");
+
+}
+
 
 int CAN::newData()
 {
@@ -21,6 +39,7 @@ void CAN::begin()
     while(!Serial5);      
     Serial5.write("atz\r");
     delay(1200);
+    SetHS();
 }
 //insert buffer and size of buffer
 //returns buffer with recived can data and the size of the buffer

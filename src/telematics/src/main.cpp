@@ -21,11 +21,23 @@ JsonObject* root;
 JsonArray* CAN_data;
 JsonArray* GPS_data;
 JsonArray* DOF_data;
+//create Gps object
+Adafruit_GPS gps = Adafruit_GPS(&Serial1);
+int timer;
 
 void setup() {
     
     Serial.begin(9600); //start Serial output
     delay(5000);        //wait for user, needs to be updated
+
+    pinMode(D6, OUTPUT);
+    digitalWrite(D6,LOW);
+    gps.begin(9600);
+    gps.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+    delay(500);
+    // Default is 1 Hz update rate
+    gps.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+    delay(500);
 
     //initialize the json parser
     static JsonObject& root_temp = jsonBuffer.createObject();
@@ -70,18 +82,42 @@ void setup() {
         for(int i = 0; i < 16; i++){
             Serial.printf("%c",put[i]);
         }
-        Serial.println();
-        
+        Serial.println();   
 
     }
-    
-}   
 
+    timer = millis();
+
+    for (int i=0;i<=21;i++)
+    {
+        Serial.print(((char*)can_recv_buffer[i]);
+    }
+}
 void loop() {
 
-    os_mutex_lock(dof_recv_mutex); 
-    os_mutex_lock(gps_recv_mutex); 
+    //update gps
+    while (Serial1.available()) {
+        char c = gps.read();
+        if (gps.newNMEAreceived()) {
+            gps.parse(gps.lastNMEA());
+        }
+    }
+
+     if (millis() - timer > 2000) {
+        timer=millis();
+        Serial.println("Global Positioning System");
+        Serial.println("======================================================");
+        Serial.print("Latitude: "); Serial.println(gps.latitudeDegrees);
+        Serial.print("Longitude: "); Serial.println(gps.longitudeDegrees);
+        Serial.println("");
+     }
+    
+
+    os_mutex_lock(dof_recv_mutex);    
+    os_mutex_lock(gps_recv_mutex);
     os_mutex_lock(can_recv_mutex);   
+
+
     //meesage type
     byte message_id;
     message_id = message_id || (new_can_flag << 3);
@@ -119,13 +155,14 @@ void loop() {
         new_gps_flag = false;  
     }
 
+#if MQTT_STATUS
     os_mutex_lock(mqtt_mutex);
     int buflen= root->measurePrettyLength();
     mqtt_send_buffer = (char*)realloc(mqtt_send_buffer,buflen+1);   //adjsut mqtt buffer size
     root->prettyPrintTo(mqtt_send_buffer,buflen+1);                 //create send char array
-    awsiot->publish("cart/2",mqtt_send_buffer);                     //aws send new buffer
+    //awsiot->publish("cart/2",mqtt_send_buffer);                     //aws send new buffer
     os_mutex_unlock(mqtt_mutex);
-
+#endif
     //clear arrays
     for(int i =0; i < RECORDS; i++)
     {
@@ -142,6 +179,6 @@ void loop() {
     os_mutex_unlock(dof_recv_mutex);
     os_mutex_unlock(gps_recv_mutex);
     os_mutex_unlock(can_recv_mutex);
-}
 
+}
 

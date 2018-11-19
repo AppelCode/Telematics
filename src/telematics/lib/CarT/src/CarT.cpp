@@ -8,8 +8,8 @@ system_tick_t lastThreadTime = 0;
 //initialize buffers
 char* mqtt_recv_buffer;     //buffer for mqqt_recv data
 char* mqtt_send_buffer;     //buffer for mqtt_send data 
-char**  can_recv_buffer;   //buffer for can_recv data
-char**  can_send_buffer;   //buffer for can_send data
+int can_recv_buffer[RECORDS][8];   //buffer for can_recv data
+int can_send_buffer[RECORDS][8];   //buffer for can_send data
 float gps_recv_buffer[RECORDS][2];      //buffer for gps_recv data
 float dof_recv_buffer[RECORDS][9];      //buffer for dof_recv data
 
@@ -38,8 +38,6 @@ CAN* stn = new CAN();
 DOF* dof = new DOF();
 SD* sd_storage = new SD();
 Crypt* secretStuff = new Crypt();
-Gps* _gps = new Gps(&Serial1);
-//Gga* gga = new Gga(*_gps);
 AWS* awsiot = new AWS("a3mb0mz6legbs8.iot.us-east-2.amazonaws.com", 8883, callback);
 
 //setup threads
@@ -128,7 +126,7 @@ void startup_function() {
 //requires cell connection
 void server_thread_function(void) {
   
-    while(!Cellular.ready())            //wait for cell connection
+    while(!Cellular.ready());           //wait for cell connection
     awsiot->connect("sparkclient");     //setup AWS connection
         if (awsiot->isConnected()) {        
             awsiot->publish("outTopic/message", "hello world"); //send hello world confirmation
@@ -150,11 +148,12 @@ void server_thread_function(void) {
 void CAN_thread_function(void){
     os_mutex_lock(startup_can_mutex);
 
-    int buffer[8];
+    int can_temp_buffer[]
     int size = 0;
     int current_frames;
 
     stn->begin();
+    stn->GetRPM();
 
     while(1){
 
@@ -254,7 +253,7 @@ void internal_thread_function(void){
                 memcpy(&gps_recv_buffer[j], &temp_gps_buffer[j], sizeof(temp_gps_buffer[0]));
             }
             new_dof_flag = true;                        //new information is in the recv_buffer
-            os_mutex_unlock(dof_recv_mutex);
+            os_mutex_unlock(gps_recv_mutex);
         }
 #endif       
    }
