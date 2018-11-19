@@ -11,7 +11,7 @@
 #define SD_STATUS false
 #define DOF_STATUS false
 #define GPS_STATUS false
-#define CAN_STATUS true
+#define CAN_STATUS false
 #define MQTT_STATUS false
 #define CAR_ID 2
 
@@ -26,10 +26,10 @@ extern system_tick_t lastThreadTime;        //used for thread timing if needed
 //global buffers
 extern char* mqtt_recv_buffer;  //buffer for mqqt_recv data
 extern char* mqtt_send_buffer;  //buffer for mqtt_send data 
-extern int can_recv_buffer[RECORDS][8];   //buffer for can_recv data
-extern int can_send_buffer[RECORDS][8];   //buffer for can_send data
-extern float gps_recv_buffer[RECORDS][2];   //buffer for gps_recv data
-extern float dof_recv_buffer[RECORDS][9];   //buffer for dof_recv data
+extern int can_recv_buffer[RECORDS][9];   //buffer for can_recv data
+extern int can_send_buffer[RECORDS][9];   //buffer for can_send data
+extern float gps_recv_buffer[RECORDS][3];   //buffer for gps_recv data
+extern float dof_recv_buffer[RECORDS][10];   //buffer for dof_recv data
 
 extern bool new_can_flag;
 extern bool new_dof_flag;

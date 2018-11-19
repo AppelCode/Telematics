@@ -14,45 +14,35 @@ unsigned char key[32];
 unsigned long lastSync = millis();
 int counter = 0;
 
-    int size;
+int size;
 
-//create json buffer for parsing data 
-DynamicJsonBuffer jsonBuffer;
-JsonObject* root;
-JsonArray* CAN_data;
-JsonArray* GPS_data;
-JsonArray* DOF_data;
+mbedtls_ctr_drbg_context ctr_drbg;
+mbedtls_entropy_context entropy;
+unsigned char rn[1];
+
+ 
+
 //create Gps object
 Adafruit_GPS gps = Adafruit_GPS(&Serial1);
 int timer;
+
+int buf[64];
+
 
 void setup() {
     
     Serial.begin(9600); //start Serial output
     delay(5000);        //wait for user, needs to be updated
+    
+    mbedtls_entropy_init( &entropy );
+    mbedtls_ctr_drbg_init( &ctr_drbg );
 
-    pinMode(D6, OUTPUT);
-    digitalWrite(D6,LOW);
-    gps.begin(9600);
-    gps.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
-    delay(500);
-    // Default is 1 Hz update rate
-    gps.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
-    delay(500);
+    mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy, \
+    (unsigned char *) "hello", strlen( "hello" ) );
 
-    //initialize the json parser
-    static JsonObject& root_temp = jsonBuffer.createObject();
-    root=&root_temp;
 
-    static JsonArray& CAN_data_temp = root->createNestedArray("CAN_data");
-    CAN_data=&CAN_data_temp;
 
-    static JsonArray& GPS_data_temp = root->createNestedArray("GPS_data");
-    GPS_data=&GPS_data_temp;
-
-    static JsonArray& DOF_data_temp = root->createNestedArray("DOF_data");
-    DOF_data=&DOF_data_temp;
-
+    /*
     WITH_LOCK(Serial)
     {
 
@@ -88,54 +78,45 @@ void setup() {
     }
 
     timer = millis();
+    */
 }
 void loop() {
 
-    //update gps
-    while (Serial1.available()) {
-        char c = gps.read();
-        if (gps.newNMEAreceived()) {
-            gps.parse(gps.lastNMEA());
-        }
+
+    stn->begin();
+    stn->getRPM();
+    int num = stn->receive(buf,0);
+
+    for(int i = 0; i < num; i++){
+        Serial.printf("%c", buf[i]);
     }
-
-     if (millis() - timer > 2000) {
-        timer=millis();
-        Serial.println("Global Positioning System");
-        Serial.println("======================================================");
-        Serial.print("Latitude: "); Serial.println(gps.latitudeDegrees);
-        Serial.print("Longitude: "); Serial.println(gps.longitudeDegrees);
-        Serial.println("");
-     }
-    
-
+    /*
     os_mutex_lock(dof_recv_mutex);    
     os_mutex_lock(gps_recv_mutex);
     os_mutex_lock(can_recv_mutex);   
 
-    if(new_can_flag){
-        Serial.println("CAN_frame: ");
-        for(int i=0; i< 9; i++){
-            Serial.print((char)can_recv_buffer[0][i]);
-            new_can_flag=false;
-        }
-        Serial.println();
-    }
-
     //meesage type
-    byte message_id;
-    message_id = message_id || (new_can_flag << 3);
-    message_id = message_id || (new_can_flag << 2);
-    message_id = message_id || (new_can_flag << 1);
+    unsigned char message_id = 0;;
+    message_id = message_id | (new_can_flag << 3);
+    message_id = message_id | (new_dof_flag << 2);
+    message_id = message_id | (new_gps_flag << 1);
 
-    (*root)["messageid"] = message_id;
+        //initialize the json parser
+    DynamicJsonBuffer jsonBuffer;
+    JsonObject& root = jsonBuffer.createObject();
+    JsonArray& CAN_data = root.createNestedArray("CAN_data");
+    JsonArray& GPS_data = root.createNestedArray("GPS_data");
+    JsonArray& DOF_data = root.createNestedArray("DOF_data");
 
-    
+    root["messageid"] = message_id;
+
     if(new_dof_flag){
         for(int i =0; i < dof_frames_in_buffer; i++)
         {
-            DOF_data->createNestedArray(); 
-            (*DOF_data)[i]=dof_recv_buffer[i];    
+            JsonArray& temp = DOF_data.createNestedArray(); 
+            for(int j =0; j < 9; j++){
+                temp.add(dof_recv_buffer[i][j]);  
+            }
         }
         new_dof_flag = false; 
     }
@@ -143,8 +124,10 @@ void loop() {
     if(new_can_flag){
         for(int i =0; i < can_frames_in_buffer; i++)
         {
-            CAN_data->createNestedArray();  
-            (*CAN_data)[i]=can_recv_buffer[i];      
+            JsonArray& temp = CAN_data.createNestedArray(); 
+            for(int j =0; j < 9; j++){
+                temp.add(can_recv_buffer[i][j]);  
+            }     
         }
         new_can_flag = false; 
     }
@@ -153,36 +136,39 @@ void loop() {
         
         for(int i =0; i < gps_frames_in_buffer; i++)
         {
-            GPS_data->createNestedArray(); 
-            (*GPS_data)[i]=gps_recv_buffer[i];       
+            JsonArray& temp = GPS_data.createNestedArray(); 
+            for(int j =0; j < 9; j++){
+                temp.add(gps_recv_buffer[i][j]);  
+            };       
         }
         new_gps_flag = false;  
     }
-
+   
+    if(message_id != 0){
+        Serial.println("Global Positioning System");
+        Serial.println("======================================================");
+        Serial.print("Latitude: "); Serial.println(gps.latitudeDegrees);
+        Serial.print("Longitude: "); Serial.println(gps.longitudeDegrees);
+        Serial.println("");
+        
+        root.prettyPrintTo(Serial);
+    }
+    
 #if MQTT_STATUS
     os_mutex_lock(mqtt_mutex);
-    int buflen= root->measurePrettyLength();
+    int buflen= root.measurePrettyLength();
     mqtt_send_buffer = (char*)realloc(mqtt_send_buffer,buflen+1);   //adjsut mqtt buffer size
-    root->prettyPrintTo(mqtt_send_buffer,buflen+1);                 //create send char array
+    root.prettyPrintTo(mqtt_send_buffer,buflen+1);                 //create send char array  
     //awsiot->publish("cart/2",mqtt_send_buffer);                     //aws send new buffer
     os_mutex_unlock(mqtt_mutex);
 #endif
-    //clear arrays
-    for(int i =0; i < RECORDS; i++)
-    {
-        DOF_data->remove(i); 
-    }
-    for(int i =0; i < RECORDS; i++)
-    {
-        CAN_data->remove(i);        
-    }       
-    for(int i =0; i < RECORDS; i++)
-    {
-        GPS_data->remove(i);     
-    }
+
+    jsonBuffer.clear();
+
     os_mutex_unlock(dof_recv_mutex);
     os_mutex_unlock(gps_recv_mutex);
     os_mutex_unlock(can_recv_mutex);
+    */
 
 }
 

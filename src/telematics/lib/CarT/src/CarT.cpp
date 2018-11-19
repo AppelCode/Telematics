@@ -8,10 +8,10 @@ system_tick_t lastThreadTime = 0;
 //initialize buffers
 char* mqtt_recv_buffer;     //buffer for mqqt_recv data
 char* mqtt_send_buffer;     //buffer for mqtt_send data 
-int can_recv_buffer[RECORDS][8];   //buffer for can_recv data
-int can_send_buffer[RECORDS][8];   //buffer for can_send data
-float gps_recv_buffer[RECORDS][2];      //buffer for gps_recv data
-float dof_recv_buffer[RECORDS][9];      //buffer for dof_recv data
+int can_recv_buffer[RECORDS][9];   //buffer for can_recv data
+int can_send_buffer[RECORDS][9];   //buffer for can_send data
+float gps_recv_buffer[RECORDS][3];      //buffer for gps_recv data
+float dof_recv_buffer[RECORDS][10];      //buffer for dof_recv data
 
 bool new_can_flag = false;
 bool new_dof_flag = false;
@@ -42,13 +42,13 @@ AWS* awsiot = new AWS("a3mb0mz6legbs8.iot.us-east-2.amazonaws.com", 8883, callba
 
 //setup threads
 #if MQTT_STATUS
-Thread server_thread("server_thread", server_thread_function, OS_THREAD_PRIORITY_DEFAULT,6*1024);
+Thread server_thread("server_thread", server_thread_function, 2,3*1024);
 #endif
 #if CAN_STATUS
-Thread CAN_thread("CAN_thread", CAN_thread_function, OS_THREAD_PRIORITY_DEFAULT,3*1024);
+Thread CAN_thread("CAN_thread", CAN_thread_function, 2,3*1024);
 #endif
 #if DOF_STATUS || GPS_STATUS
-Thread internal_thread("Internal_thread", internal_thread_function, OS_THREAD_PRIORITY_DEFAULT,3*1024);
+Thread internal_thread("Internal_thread", internal_thread_function, 2,3*1024);
 #endif
 
 // recieve message handler for server_thread
@@ -145,12 +145,12 @@ void server_thread_function(void) {
 
 }
 
+system_tick_t canlastThreadTime = 0;
 void CAN_thread_function(void){
     os_mutex_lock(startup_can_mutex);
 
-    int can_temp_buffer[30][8];
+    int can_temp_buffer[30][9];
     int size = 0;
-    int current_frames;
     int c_frames_in_buffer=0;
 
     stn->begin();
@@ -160,13 +160,14 @@ void CAN_thread_function(void){
          if(!new_can_flag)
         {
             c_frames_in_buffer = 0;     //start as first frame read in buffer    
-        } 
-        c_frames_in_buffer++;           //increase number of records in buffer by one      
+        } else {
+            c_frames_in_buffer++;           //increase number of records in buffer by one    
+        }  
 
         //lock out for writing
         stn->GetRPM();
 
-        if(os_mutex_trylock(can_recv_mutex) && stn->receive(can_temp_buffer[0],8))
+        if(os_mutex_trylock(can_recv_mutex) && (stn->receive(can_temp_buffer[0],8) > 7))
         {
             //copy temp_dof_buffer to dof_recv_buffer
             can_frames_in_buffer = 1;  //copy temp_dof_buffer to dof_recv_buffer
@@ -178,8 +179,10 @@ void CAN_thread_function(void){
             os_mutex_unlock(can_recv_mutex);
         }
     }
-}
 
+    os_thread_delay_until(&canlastThreadTime, 10);
+}
+system_tick_t internallastThreadTime = 0;
 //does not require cell connection
 void internal_thread_function(void){
 
@@ -188,72 +191,105 @@ void internal_thread_function(void){
 
     //setup gps and dof
     dof->begin();                   //DOF begin communication
-    float temp_dof_buffer[30][9];   //temp buffer to store dof data
-    float temp_gps_buffer[30][2];   //temp buffer to store gps data
+    float temp_dof_buffer[30][10];   //temp buffer to store dof data
+    float temp_gps_buffer[30][3];   //temp buffer to store gps data
     dof_frames_in_buffer = 0;       //set frames to 0, ie no records yet
     gps_frames_in_buffer = 0;       //set frames to 0, ie no records yet
     int d_frames_in_buffer = 0;     //set frames to 0, ie no records yet
     int g_frames_in_buffer = 0; //set frames to 0, ie no records yet
+
+    bool dof_read = false;
+    bool gps_read = false;
+
+        //turn on 
+    pinMode(D6, OUTPUT);
+    digitalWrite(D6,LOW);
+
+    gps.begin(9600);
+    gps.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+    delay(500);
+    // Default is 1 Hz update rate
+    gps.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+    delay(500);
     //never return
     while(1){
 
         //set number of records in temp buffer
-        if(!new_dof_flag)
+        if(!new_dof_flag)               //if flag was tuned to false then this is first frame
         {
-            d_frames_in_buffer = 0;     //start as first frame read in buffer    
-        } 
-        d_frames_in_buffer++;           //increase number of records in buffer by one      
-
-        if(!new_gps_flag)
-        {
-            g_frames_in_buffer = 0;     //start as first frame read in buffer    
-        } 
-        g_frames_in_buffer++;           //increase number of records in buffer by one    
+            d_frames_in_buffer = 0;      
+        } else {
+            d_frames_in_buffer++;       //increase number of records in buffer by one      
+        }
 
         //dof read all 9 degrees
         dof->getAll();
+        dof_read=true;
 
         //stroe dof values in temp buffer at current record
-        temp_dof_buffer[d_frames_in_buffer-1][0] = 13.4;
-        temp_dof_buffer[d_frames_in_buffer-1][1] = 13.4;
-        temp_dof_buffer[d_frames_in_buffer-1][2] = 13.4;
-        temp_dof_buffer[d_frames_in_buffer-1][3] = 13.4;
-        temp_dof_buffer[d_frames_in_buffer-1][4] = 13.4;
-        temp_dof_buffer[d_frames_in_buffer-1][5] = 13.4;
-        temp_dof_buffer[d_frames_in_buffer-1][6] = 13.4;
-        temp_dof_buffer[d_frames_in_buffer-1][7] = 13.4;
-        temp_dof_buffer[d_frames_in_buffer-1][8] = 13.4;
+        temp_dof_buffer[d_frames_in_buffer][0] = dof.GX;
+        temp_dof_buffer[d_frames_in_buffer][1] = dof.GY;
+        temp_dof_buffer[d_frames_in_buffer][2] = dof.GZ;
+        temp_dof_buffer[d_frames_in_buffer][3] = dof.AX;
+        temp_dof_buffer[d_frames_in_buffer][4] = dof.AY;
+        temp_dof_buffer[d_frames_in_buffer][5] = dof.AZ;
+        temp_dof_buffer[d_frames_in_buffer][6] = dof.MX;
+        temp_dof_buffer[d_frames_in_buffer][7] = dof.MY;
+        temp_dof_buffer[d_frames_in_buffer][8] = dof.MZ;
+        
+
+
+        if(!new_gps_flag)
+        {
+            g_frames_in_buffer = 0;        
+        } else {
+            g_frames_in_buffer++;       //increase number of records in buffer by one    
+        }
 
         //repeat for gps
+
+        //update gps
+        while (Serial1.available()) {
+            char c = gps.read();
+            if (gps.newNMEAreceived()) {
+                gps.parse(gps.lastNMEA());
+            }
+        }
 
 
         //transfer data to main buffer when locks are avaliable
 #if DOF_STATUS
-        if(os_mutex_trylock(dof_recv_mutex))
-        {
-            //copy temp_dof_buffer to dof_recv_buffer
-            dof_frames_in_buffer = d_frames_in_buffer;  //copy temp_dof_buffer to dof_recv_buffer
-            for(int j = 0; j<dof_frames_in_buffer; j++)
+        if(dof_read){
+            if(os_mutex_trylock(dof_recv_mutex))
             {
-                memcpy(&dof_recv_buffer[j], &temp_dof_buffer[j], sizeof(temp_dof_buffer[0]));
+                //copy temp_dof_buffer to dof_recv_buffer
+                dof_frames_in_buffer = d_frames_in_buffer+1;  //copy temp_dof_buffer to dof_recv_buffer
+                for(int j = 0; j<dof_frames_in_buffer; j++)
+                {
+                    memcpy(&dof_recv_buffer[j], &temp_dof_buffer[j], sizeof(temp_dof_buffer[0]));
+                }
+                new_dof_flag = true;                        //new information is in the recv_buffer
+                os_mutex_unlock(dof_recv_mutex);
             }
-            new_dof_flag = true;                        //new information is in the recv_buffer
-            os_mutex_unlock(dof_recv_mutex);
         }
 #endif
 #if GPS_STATUS
 
+        if(gps_read){
         if(os_mutex_trylock(gps_recv_mutex))
-        {
-            gps_frames_in_buffer = g_frames_in_buffer;  //copy temp_gps_buffer to gps_recv_buffer
-            for(int j = 0; j<gps_frames_in_buffer; j++)
             {
-                memcpy(&gps_recv_buffer[j], &temp_gps_buffer[j], sizeof(temp_gps_buffer[0]));
+                gps_frames_in_buffer = g_frames_in_buffer+1;  //copy temp_gps_buffer to gps_recv_buffer
+                for(int j = 0; j<gps_frames_in_buffer; j++)
+                {
+                    memcpy(&gps_recv_buffer[j], &temp_gps_buffer[j], sizeof(temp_gps_buffer[0]));
+                }
+                new_gps_flag = true;                        //new information is in the recv_buffer
+                os_mutex_unlock(gps_recv_mutex);
             }
-            new_dof_flag = true;                        //new information is in the recv_buffer
-            os_mutex_unlock(gps_recv_mutex);
         }
-#endif       
+#endif
+
+    os_thread_delay_until(&internallastThreadTime, 10);
    }
 }
 

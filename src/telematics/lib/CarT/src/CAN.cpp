@@ -24,8 +24,11 @@ void CAN::ClearFlowControl(){
 
 void CAN::GetRPM()
 {
-    Serial5.write("ATSH7DF\r");
-    Serial5.write("010C\r");
+    
+    Serial5.println("ATSH7DF");
+    Serial5.flush();
+    Serial5.println("010C");
+    Serial5.flush();
 }
 
 void CAN::GetSpeed()
@@ -44,9 +47,9 @@ void CAN::begin()
 {
     Serial5.begin(9600); 
     while(!Serial5);      
-    Serial5.write("atz\r");
-    delay(1200);
-    SetHS();
+    //Serial5.write("atz\r");
+    //delay(1200);
+    //SetHS();
 }
 //insert buffer and size of buffer
 //returns buffer with recived can data and the size of the buffer
@@ -55,19 +58,15 @@ int CAN::receive(int* buffer, int number_bytes_to_write)
     int temp;
     int i = 0;
     int size = Serial5.available();
-
-    if (size >= number_bytes_to_write)
+    while(Serial5.available())
     {
-        for(int i = 0; i < number_bytes_to_write; i++)
-        {
-            temp = Serial5.read();
-            *(buffer+i) = temp;
-            i++;
-        }
-    } else {
-        return -1;
+
+        temp = Serial5.read();
+        *(buffer+i) = temp;
+        i++;
+
     }
-    return size;
+    return i-1;
 }
 
 
