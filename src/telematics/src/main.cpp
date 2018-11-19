@@ -87,11 +87,6 @@ void setup() {
     }
 
     timer = millis();
-
-    for (int i=0;i<=21;i++)
-    {
-        Serial.print(((char*)can_recv_buffer[i]);
-    }
 }
 void loop() {
 
@@ -117,6 +112,12 @@ void loop() {
     os_mutex_lock(gps_recv_mutex);
     os_mutex_lock(can_recv_mutex);   
 
+    Serial.println("CAN_frame: ");
+    for(int i=0; i< 9; i++){
+        Serial.print((char)can_recv_buffer[0][i]);
+        new_can_flag=0;
+    }
+    Serial.println();
 
     //meesage type
     byte message_id;

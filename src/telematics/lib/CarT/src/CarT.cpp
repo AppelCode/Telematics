@@ -148,37 +148,38 @@ void server_thread_function(void) {
 void CAN_thread_function(void){
     os_mutex_lock(startup_can_mutex);
 
-    int can_temp_buffer[]
+    int can_temp_buffer[30][8];
     int size = 0;
     int current_frames;
+    int c_frames_in_buffer=0;
 
     stn->begin();
-    stn->GetRPM();
 
     while(1){
 
-        //lock out for writing
-        os_mutex_lock(can_recv_mutex); 
-        current_frames = stn->newData();
-        if (current_frames!=0 && current_frames%8==0)
-        {   
-            //if data has been read clear buffer
-            if(!new_can_flag){
-                memset(can_recv_buffer,0,RECORDS);
-                can_frames_in_buffer = 0;
-            }
+         if(!new_can_flag)
+        {
+            c_frames_in_buffer = 0;     //start as first frame read in buffer    
+        } 
+        c_frames_in_buffer++;           //increase number of records in buffer by one      
 
-            //fill can_recv_buffer
-            do
-            {      
-                size = stn->receive(buffer,8);                             //add next data frame into temp buffer
-                memcpy(can_recv_buffer[can_frames_in_buffer],buffer,8);    //add to recvbuffer
-                can_frames_in_buffer ++;                                   //increase number of frames in buffer     
+        //lock out for writing
+        stn->GetRPM();
+        stn->receive(can_temp_buffer[0],8);
+
+        new_can_flag = true;
+
+        if(os_mutex_trylock(can_recv_mutex))
+        {
+            //copy temp_dof_buffer to dof_recv_buffer
+            can_frames_in_buffer = 1;  //copy temp_dof_buffer to dof_recv_buffer
+            for(int j = 0; j<1; j++)
+            {
+                memcpy(&can_recv_buffer[j], &can_temp_buffer[j], sizeof(can_temp_buffer[0]));
             }
-            while (size%8==0);
-            new_can_flag = true;
+            new_can_flag = true;                        //new information is in the recv_buffer
+            os_mutex_unlock(can_recv_mutex);
         }
-        os_mutex_unlock(can_recv_mutex);
     }
 }
 
@@ -235,7 +236,7 @@ void internal_thread_function(void){
         {
             //copy temp_dof_buffer to dof_recv_buffer
             dof_frames_in_buffer = d_frames_in_buffer;  //copy temp_dof_buffer to dof_recv_buffer
-            for(int j = 0; j<10; j++)
+            for(int j = 0; j<dof_frames_in_buffer; j++)
             {
                 memcpy(&dof_recv_buffer[j], &temp_dof_buffer[j], sizeof(temp_dof_buffer[0]));
             }
@@ -248,7 +249,7 @@ void internal_thread_function(void){
         if(os_mutex_trylock(gps_recv_mutex))
         {
             gps_frames_in_buffer = g_frames_in_buffer;  //copy temp_gps_buffer to gps_recv_buffer
-            for(int j = 0; j<3; j++)
+            for(int j = 0; j<gps_frames_in_buffer; j++)
             {
                 memcpy(&gps_recv_buffer[j], &temp_gps_buffer[j], sizeof(temp_gps_buffer[0]));
             }
