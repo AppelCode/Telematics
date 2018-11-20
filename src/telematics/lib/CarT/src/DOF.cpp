@@ -19,8 +19,8 @@
 ////////////////////////////
 // Sketch Output Settings //
 ////////////////////////////
-#define PRINT_CALCULATED
-//#define PRINT_RAW
+// #define PRINT_CALCULATED
+#define PRINT_RAW
 #define PRINT_SPEED 250 // 250 ms between prints
 
 // Earth's magnetic field varies by location. Add or subtract 
@@ -43,6 +43,7 @@ void DOF::begin()
   imu.settings.device.mAddress = LSM9DS1_M;
   imu.settings.device.agAddress = LSM9DS1_AG;
   imu.begin();
+  Wire.begin();
 }
 
 void DOF::getGyr()
@@ -163,20 +164,20 @@ void DOF::getAll()
 	
 	imu.readAccel();
 	AX=imu.calcMag(imu.ax);
-  	AY=imu.calcMag(imu.ay);
-  	AZ=imu.calcMag(imu.az);
+  AY=imu.calcMag(imu.ay);
+  AZ=imu.calcMag(imu.az);
 	
 	imu.readMag();
 	MX=imu.calcMag(imu.mx);
-  	MY=imu.calcMag(imu.my);
-        MZ=imu.calcMag(imu.mz);
+  MY=imu.calcMag(imu.my);
+  MZ=imu.calcMag(imu.mz);
 	
-        imu.readGyro();
+  imu.readGyro();
 	GX=imu.calcGyro(imu.gx);
-        GY=imu.calcGyro(imu.gy);
-        GZ=imu.calcGyro(imu.gz);
+  GY=imu.calcGyro(imu.gy);
+  GZ=imu.calcGyro(imu.gz);
 	
-        imu.readTemp();
+  imu.readTemp();
 	TEMP = (imu.temperature/256 +25.0);
 	
 	/*

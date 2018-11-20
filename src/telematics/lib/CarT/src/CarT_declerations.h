@@ -7,12 +7,12 @@
 #include "cellular_hal.h"
 
 #define RECORDS 30
-#define CELLULAR false
+#define CELLULAR true
 #define SD_STATUS false
 #define DOF_STATUS false
 #define GPS_STATUS false
 #define CAN_STATUS false
-#define MQTT_STATUS false
+#define MQTT_STATUS true
 #define CAR_ID 2
 
 //start up and thread functions
@@ -48,6 +48,9 @@ extern os_mutex_t can_recv_mutex;
 extern os_mutex_t can_send_mutex;    
 extern os_mutex_t gps_recv_mutex;     
 extern os_mutex_t dof_recv_mutex;
+
+extern os_mutex_t startup_internal_mutex;
+extern os_mutex_t startup_can_mutex;
 
 extern bool startup;
 
