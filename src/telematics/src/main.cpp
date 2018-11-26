@@ -14,27 +14,6 @@ unsigned char key[32];
 unsigned long lastSync = millis();
 int counter = 0;
 
-//create Gps object
-Adafruit_GPS gps = Adafruit_GPS(&Serial1);
-
-///////////////////////////////////////////////////////////////////
-void internal_function();
-float temp_dof_buffer[10] = {0};   //temp buffer to store dof data
-float temp_gps_buffer[3] = {0};   //temp buffer to store gps data
-int d_frames_in_buffer = 0;     //set frames to 0, ie no records yet
-int g_frames_in_buffer = 0; //set frames to 0, ie no records yet
-
-bool dof_read = false;
-bool gps_read = false;
-/////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////
-void CAN_function();
-int temp_can_buffer[64] = {0};
-int size = 0;
-int c_frames_in_buffer=0;
-/////////////////////////////////////////////////////////////////
-
 int timer = 0;
 
 
@@ -101,7 +80,7 @@ void loop() {
     message_id = message_id | (new_dof_flag << 2);
     message_id = message_id | (new_gps_flag << 1);
 
-        //initialize the json parser
+    //initialize the json parser
     DynamicJsonBuffer jsonBuffer;
     JsonObject& root = jsonBuffer.createObject();
     JsonArray& CAN_data = root.createNestedArray("CAN_data");
@@ -147,61 +126,6 @@ void loop() {
     new_dof_flag = false;
     new_gps_flag = false;
 
-    os_mutex_unlock(dof_recv_mutex);
-    os_mutex_unlock(gps_recv_mutex);
-    os_mutex_unlock(can_recv_mutex);
-
 }
 
-
-void internal_function(){
-
-        //update gps
-    while (Serial1.available()) {
-        char c = gps.read();
-        if (gps.newNMEAreceived()) {
-            gps.parse(gps.lastNMEA());
-        }
-    }
-
-    //dof read all 9 degrees
-    dof->getAll();
-    dof_read=true;
-
-    //stroe dof values in temp buffer at current record
-    temp_dof_buffer[0] = dof->GX;
-    temp_dof_buffer[1] = dof->GY;
-    temp_dof_buffer[2] = dof->GZ;
-    temp_dof_buffer[3] = dof->AX;
-    temp_dof_buffer[4] = dof->AY;
-    temp_dof_buffer[5] = dof->AZ;
-    temp_dof_buffer[6] = dof->MX;
-    temp_dof_buffer[7] = dof->MY;
-    temp_dof_buffer[8] = dof->MZ;
-
-    new_dof_flag = true;
-
-
-    temp_gps_buffer[0]=gps.latitudeDegrees*pow(10,6);
-    temp_gps_buffer[1]=gps.longitudeDegrees*pow(10,6);
-
-    Serial.print(temp_gps_buffer[0]);
-    Serial.print(", ");
-    Serial.println(temp_gps_buffer[1]);
-
-    if(temp_gps_buffer[0] != 0 && temp_gps_buffer[1]){
-        new_gps_flag = true;
-    }
-    
-
-}
-
-void CAN_function(){
-
-    stn->GetRPM();
-    stn->receive(temp_can_buffer,0);
-
-    new_can_flag = true;
-
-}
 
