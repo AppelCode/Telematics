@@ -87,8 +87,6 @@ void loop() {
     JsonArray& GPS_data = root.createNestedArray("GPS_data");
     JsonArray& DOF_data = root.createNestedArray("DOF_data");
 
-    root["messageid"] = 3;
-
     for(int j =0; j < 9; j++){
         DOF_data.add(temp_dof_buffer[j]);  
     }

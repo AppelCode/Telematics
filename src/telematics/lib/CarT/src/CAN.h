@@ -13,9 +13,8 @@ class CAN
         void monitorCAN();
         void ClearFlowControl();
         void SendFrame(int header, int message);
-        int receive(int* buffer, int& size);
+        int receive(unsigned char*, int);
         int newData();
-        int receive(int* buffer,int number_bytes_to_write);
     private:
 };
 #endif

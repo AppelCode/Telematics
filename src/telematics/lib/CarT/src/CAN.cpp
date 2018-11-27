@@ -53,19 +53,22 @@ void CAN::begin()
 }
 //insert buffer and size of buffer
 //returns buffer with recived can data and the size of the buffer
-int CAN::receive(int* buffer, int number_bytes_to_write)
+int CAN::receive(unsigned char* buffer, int number_bytes_to_write)
 {
     int temp;
     int i = 0;
     int size = Serial5.available();
-    while(Serial5.available())
+
+    for (int i= 0 ; i < (number_bytes_to_write*2 + (number_bytes_to_write-1)); i++)
     {
-
-        temp = Serial5.read();
-        *(buffer+i) = temp;
-        i++;
-
+        if((i+1)%3 == 0){
+            Serial.read();
+        } else {
+           temp = Serial5.read();
+            *(buffer+i) = (unsigned char)temp; 
+        }
     }
+    while(Serial5.available());
     return i-1;
 }
 

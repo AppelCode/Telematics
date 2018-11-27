@@ -34,7 +34,7 @@ os_mutex_t mqtt_recv_mutex;
 os_mutex_t mqtt_send_mutex; 
 
 
-int temp_can_buffer[64] = {0};
+unsigned char temp_can_buffer[64] = {0};
 float temp_dof_buffer[10] = {0};
 float temp_gps_buffer[3] = {0};
 /*
@@ -205,7 +205,7 @@ void internal_function(){
     temp_dof_buffer[7] = dof->MY;
     temp_dof_buffer[8] = dof->MZ;
 
-    new_dof_flag = true;
+    new_dof_flag = false;
 
 
     temp_gps_buffer[0]=gps.latitudeDegrees*pow(10,6);
@@ -215,7 +215,7 @@ void internal_function(){
     Serial.print(", ");
     Serial.println(temp_gps_buffer[1]);
 
-    if(temp_gps_buffer[0] != 0 && temp_gps_buffer[1]){
+    if(temp_gps_buffer[0] != 0 && temp_gps_buffer[1] != 0){
         new_gps_flag = true;
     }
     
@@ -225,7 +225,7 @@ void internal_function(){
 void CAN_function(){
 
     stn->GetRPM();
-    stn->receive(temp_can_buffer,0);
+    stn->receive(temp_can_buffer,4);
 
     new_can_flag = true;
 
