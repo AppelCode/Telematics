@@ -13,11 +13,8 @@ public:
   GPS();
 
   void begin();
-
-  void getCoord();
-  
-  bool flag();
-  
+  void getCoord(); 
+  bool flag(); 
   void time();
   
   float LAT, LON;
@@ -27,7 +24,7 @@ public:
 
 private:
 
-   Adafruit_GPS gps = Adafruit_GPS(&GPSSerial);
+  Adafruit_GPS gps = Adafruit_GPS(&GPSSerial);
 
 };
 #endif

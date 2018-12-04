@@ -174,7 +174,6 @@ void releaseMutexs(){
     //os_mutex_unlock(can_send_mutex);
     //os_mutex_unlock(gps_recv_mutex);
     //os_mutex_unlock(dof_recv_mutex);
-    os_mutex_unlock(mqtt_mutex);
 
     //os_mutex_unlock(startup_internal_mutex);
     //os_mutex_unlock(startup_can_mutex);
@@ -194,7 +193,7 @@ void internal_function(){
     //dof read all 9 degrees
     dof->getAll();
 
-    //stroe dof values in temp buffer at current record
+    //store dof values in temp buffer at current record
     temp_dof_buffer[0] = dof->GX;
     temp_dof_buffer[1] = dof->GY;
     temp_dof_buffer[2] = dof->GZ;
@@ -211,20 +210,16 @@ void internal_function(){
     temp_gps_buffer[0]=gps.latitudeDegrees*pow(10,6);
     temp_gps_buffer[1]=gps.longitudeDegrees*pow(10,6);
 
-    Serial.print(temp_gps_buffer[0]);
-    Serial.print(", ");
-    Serial.println(temp_gps_buffer[1]);
-
     if(temp_gps_buffer[0] != 0 && temp_gps_buffer[1] != 0){
         new_gps_flag = true;
     }
-    
 
 }
 
 void CAN_function(){
 
     stn->GetRPM();
+    delay(200);
     stn->receive(temp_can_buffer,4);
 
     new_can_flag = true;

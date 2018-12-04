@@ -72,58 +72,61 @@ void setup() {
 }
 void loop() {
 
-    internal_function();
-    CAN_function();
-    //meesage type
-    unsigned char message_id = 0;
-    message_id = message_id | (new_can_flag << 3);
-    message_id = message_id | (new_dof_flag << 2);
-    message_id = message_id | (new_gps_flag << 1);
-
-    //initialize the json parser
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject& root = jsonBuffer.createObject();
-    JsonArray& CAN_data = root.createNestedArray("CAN_data");
-    JsonArray& GPS_data = root.createNestedArray("GPS_data");
-    JsonArray& DOF_data = root.createNestedArray("DOF_data");
-
-    for(int j =0; j < 9; j++){
-        DOF_data.add(temp_dof_buffer[j]);  
-    }
-
-
-    for(int j =0; j < 8; j++){
-        CAN_data.add(temp_can_buffer[j]);  
-    }     
-    
-    for(int j =0; j < 2; j++){
-        GPS_data.add(temp_gps_buffer[j]);  
-    }  
-
-
-#if MQTT_STATUS
-    os_mutex_lock(mqtt_mutex);
-    int buflen= root.measureLength();
-    mqtt_send_buffer = (char*)realloc(mqtt_send_buffer,buflen+1);   //adjsut mqtt buffer size
-    root.printTo(mqtt_send_buffer,buflen+1);                 //create send char array  
 
     if (millis() - timer > 1000){
         timer = millis();
-        if(new_gps_flag){
-             root.prettyPrintTo(Serial);                 //create send char array
+
+        internal_function();
+        CAN_function();
+        //meesage type
+        unsigned char message_id = 0;
+        message_id = message_id | (new_can_flag << 3);
+        //message_id = message_id | (new_dof_flag << 2);
+        message_id = message_id | (new_gps_flag << 1);
+        //initialize the json parser
+        DynamicJsonBuffer jsonBuffer;
+        JsonObject& root = jsonBuffer.createObject();
+        JsonArray& CAN_data = root.createNestedArray("CAN_data");
+        JsonArray& GPS_data = root.createNestedArray("GPS_data");
+        JsonArray& DOF_data = root.createNestedArray("DOF_data");
+
+        root["messageid"] = message_id;
+
+        for(int j =0; j < 9; j++){
+            DOF_data.add(temp_dof_buffer[j]);  
+        }
+
+
+        for(int j =0; j < 16; j++){
+            CAN_data.add(temp_can_buffer[j]);  
+        }     
+        
+        for(int j =0; j < 2; j++){
+            GPS_data.add(temp_gps_buffer[j]);  
+        }  
+
+
+    #if MQTT_STATUS
+        os_mutex_lock(mqtt_mutex);
+        int buflen= root.measureLength();
+        mqtt_send_buffer = (char*)realloc(mqtt_send_buffer,buflen+1);   //adjsut mqtt buffer size
+        root.printTo(mqtt_send_buffer,buflen+1);                 //create send char array  
+
+
+        if(message_id != 0){
+            root.prettyPrintTo(Serial);                 //create send char array
             awsiot->publish("cart/1",mqtt_send_buffer);                     //aws send new buffer  
         }
+    
+        os_mutex_unlock(mqtt_mutex);
+    #endif
+
+        jsonBuffer.clear();
+
+        new_can_flag = false;
+        new_dof_flag = false;
+        new_gps_flag = false;
     }
-   
-    os_mutex_unlock(mqtt_mutex);
-#endif
-
-    jsonBuffer.clear();
-
-    new_can_flag = false;
-    new_dof_flag = false;
-    new_gps_flag = false;
-
 }
 
 

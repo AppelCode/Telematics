@@ -1,6 +1,10 @@
 #include "CAN.h"
 #include "Serial5/Serial5.h"
 
+void clearBuffer(){
+    while(Serial5.available())Serial5.read();
+}
+
 CAN::CAN() 
 {
     //initialization parameters
@@ -24,11 +28,9 @@ void CAN::ClearFlowControl(){
 
 void CAN::GetRPM()
 {
-    
-    Serial5.println("ATSH7DF");
-    Serial5.flush();
-    Serial5.println("010C");
-    Serial5.flush();
+    clearBuffer();              //clear out an garbage in buffer
+    Serial5.println("010C");    //request rpm data from can bus
+    Serial5.flush();            //wait for request to finish
 }
 
 void CAN::GetSpeed()
@@ -46,30 +48,36 @@ int CAN::newData()
 void CAN::begin()
 {
     Serial5.begin(9600); 
-    while(!Serial5);      
+    while(!Serial5);
+    Serial5.println("ATSH7DF"); //set header for diagnostic message as default
+    Serial5.flush();   
+    delay(200);
+    Serial5.println("ATE0"); //set header for diagnostic message as default
+    Serial5.flush();   
     //Serial5.write("atz\r");
     //delay(1200);
     //SetHS();
 }
+
 //insert buffer and size of buffer
 //returns buffer with recived can data and the size of the buffer
 int CAN::receive(unsigned char* buffer, int number_bytes_to_write)
 {
     int temp;
-    int i = 0;
-    int size = Serial5.available();
-
-    for (int i= 0 ; i < (number_bytes_to_write*2 + (number_bytes_to_write-1)); i++)
+    for (int i= 0 ; i < (number_bytes_to_write*2); i++)
     {
-        if((i+1)%3 == 0){
-            Serial.read();
+        temp = Serial5.read();
+        
+        //handle spaces in stn uart response
+        if(temp == 32){
+            i--;         
         } else {
-           temp = Serial5.read();
-            *(buffer+i) = (unsigned char)temp; 
+            *(buffer+i) = (unsigned char)temp;  //store value in buffer
+            Serial.print((unsigned char)temp);
         }
     }
-    while(Serial5.available());
-    return i-1;
+    Serial.println();
+    return 1;
 }
 
 

@@ -8,10 +8,10 @@
 
 #define RECORDS 30
 #define CELLULAR true
-#define SD_STATUS false
-#define DOF_STATUS false
-#define GPS_STATUS false
-#define CAN_STATUS false
+#define SD_STATUS true
+#define DOF_STATUS true
+#define GPS_STATUS true
+#define CAN_STATUS true
 #define MQTT_STATUS true
 #define CAR_ID 2
 

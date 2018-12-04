@@ -13,6 +13,9 @@ void GPS::begin()
   gps.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
   pinMode(D6, OUTPUT);
   digitalWrite(D6, LOW);
+  
+  LAT=0;
+  LON = 0;
 }
 
 bool GPS::flag(){
@@ -27,7 +30,7 @@ void GPS::getCoord()
         char c = gps.read();
         if (gps.newNMEAreceived()){
             gps.parse(gps.lastNMEA());
-            }
+        }
     }
 	LAT = gps.latitudeDegrees;
 	LON = gps.longitudeDegrees; 	      
