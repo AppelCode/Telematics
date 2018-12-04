@@ -1,6 +1,7 @@
 #include "Particle.h"
 #include <ArduinoJson.h>
 #include <CarT.h>
+#include "SdFat.h"
 //#include <SparkJson.h>
 
 
@@ -16,6 +17,8 @@ int counter = 0;
 
 int timer = 0;
 
+//SdFat sd_test;
+//File myfile;
 
 void setup() {
     
@@ -33,6 +36,8 @@ void setup() {
     delay(500);
     gps.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
     delay(500);
+
+    sd_storage->begin();    
 
     //start can communication
     stn->begin();
@@ -65,8 +70,8 @@ void setup() {
     for(int i = 0; i < 16; i++){
         Serial.printf("%c",put[i]);
     }
-    Serial.println(); 
-    Serial.println(System.freeMemory());  
+    Serial.println((char*)put); 
+  
 
     timer = millis();
 }
@@ -96,10 +101,10 @@ void loop() {
             DOF_data.add(temp_dof_buffer[j]);  
         }
 
-
         for(int j =0; j < 16; j++){
-            CAN_data.add(temp_can_buffer[j]);  
-        }     
+            CAN_data.add((char)temp_can_buffer[j]); 
+        
+        }              
         
         for(int j =0; j < 2; j++){
             GPS_data.add(temp_gps_buffer[j]);  
@@ -114,8 +119,10 @@ void loop() {
 
 
         if(message_id != 0){
-            root.prettyPrintTo(Serial);                 //create send char array
-            awsiot->publish("cart/1",mqtt_send_buffer);                     //aws send new buffer  
+            root.prettyPrintTo(Serial);                //create send char array
+            sd_storage->write(mqtt_send_buffer);
+            sd_storage->write("\n");
+            awsiot->publish("cart/2",mqtt_send_buffer);                     //aws send new buffer  
         }
     
         os_mutex_unlock(mqtt_mutex);

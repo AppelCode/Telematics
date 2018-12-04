@@ -13,7 +13,7 @@ void GPS::begin()
   gps.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
   pinMode(D6, OUTPUT);
   digitalWrite(D6, LOW);
-  
+
   LAT=0;
   LON = 0;
 }

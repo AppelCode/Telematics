@@ -219,9 +219,10 @@ void internal_function(){
 void CAN_function(){
 
     stn->GetRPM();
-    delay(200);
+    delay(50);
     stn->receive(temp_can_buffer,4);
 
+    
     new_can_flag = true;
 
 }

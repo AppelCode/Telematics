@@ -1,6 +1,7 @@
 #include "CAN.h"
 #include "Serial5/Serial5.h"
 
+
 void clearBuffer(){
     while(Serial5.available())Serial5.read();
 }
@@ -35,8 +36,9 @@ void CAN::GetRPM()
 
 void CAN::GetSpeed()
 {
-    Serial5.write("ATSH7DF\r");
-    Serial5.write("010D\r");
+    clearBuffer();
+    Serial5.println("010D");
+    Serial5.flush();
 
 }
 
@@ -72,9 +74,12 @@ int CAN::receive(unsigned char* buffer, int number_bytes_to_write)
         if(temp == 32){
             i--;         
         } else {
-            *(buffer+i) = (unsigned char)temp;  //store value in buffer
-            Serial.print((unsigned char)temp);
+            if(temp != -1){
+                *(buffer+i) = (unsigned char)temp;  //store value in buffer
+            }
         }
+          
+
     }
     Serial.println();
     return 1;

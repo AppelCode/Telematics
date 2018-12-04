@@ -9,7 +9,7 @@
 #define FLOAT_TYPE 1
 
 #define SPI_CONFIGURATION 0
-const uint8_t chipSelect = SS;
+const uint8_t chipSelect = A0;
 
 
 class SD
@@ -17,9 +17,7 @@ class SD
 public:
     SD();
     bool begin();
-
-    template<typename datatype> bool write(datatype data);
-
+    bool write(const char* data);
     void read();
 
 private:
