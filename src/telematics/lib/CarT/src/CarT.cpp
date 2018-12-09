@@ -34,9 +34,9 @@ os_mutex_t mqtt_recv_mutex;
 os_mutex_t mqtt_send_mutex; 
 
 
-unsigned char temp_can_buffer[64] = {0};
-float temp_dof_buffer[10] = {0};
-float temp_gps_buffer[3] = {0};
+unsigned char temp_can_buffer[64][16] = {0};
+float temp_dof_buffer[64][10] = {0};
+float temp_gps_buffer[64][3] = {0};
 /*
 os_mutex_t can_recv_mutex;    
 os_mutex_t can_send_mutex;    
@@ -180,13 +180,18 @@ void releaseMutexs(){
     //startup complete          
 }
 
-void internal_function(){
+void internal_function(int &record_num, unsigned char setting){
 
         //update gps
     while (Serial1.available()) {
         char c = gps.read();
         if (gps.newNMEAreceived()) {
             gps.parse(gps.lastNMEA());
+            temp_gps_buffer[record_num][0]=gps.latitudeDegrees*pow(10,6);
+            temp_gps_buffer[record_num][1]=gps.longitudeDegrees*pow(10,6);
+            if(temp_gps_buffer[record_num][0] != 0 && temp_gps_buffer[record_num][1] != 0){
+                record_num++;
+            }
         }
     }
 
@@ -194,37 +199,18 @@ void internal_function(){
     dof->getAll();
 
     //store dof values in temp buffer at current record
-    temp_dof_buffer[0] = dof->GX;
-    temp_dof_buffer[1] = dof->GY;
-    temp_dof_buffer[2] = dof->GZ;
-    temp_dof_buffer[3] = dof->AX;
-    temp_dof_buffer[4] = dof->AY;
-    temp_dof_buffer[5] = dof->AZ;
-    temp_dof_buffer[6] = dof->MX;
-    temp_dof_buffer[7] = dof->MY;
-    temp_dof_buffer[8] = dof->MZ;
-
-    new_dof_flag = false;
-
-
-    temp_gps_buffer[0]=gps.latitudeDegrees*pow(10,6);
-    temp_gps_buffer[1]=gps.longitudeDegrees*pow(10,6);
-
-    if(temp_gps_buffer[0] != 0 && temp_gps_buffer[1] != 0){
-        new_gps_flag = true;
-    }
-
+    temp_dof_buffer[record_num][0] = dof->GX;
+    temp_dof_buffer[record_num][1] = dof->GY;
+    temp_dof_buffer[record_num][2] = dof->GZ;
+    temp_dof_buffer[record_num][3] = dof->AX;
+    temp_dof_buffer[record_num][4] = dof->AY;
+    temp_dof_buffer[record_num][5] = dof->AZ;
+    temp_dof_buffer[record_num][6] = dof->MX;
+    temp_dof_buffer[record_num][7] = dof->MY;
+    temp_dof_buffer[record_num][8] = dof->MZ;
 }
 
 void CAN_function(){
-
-    stn->GetRPM();
-    delay(50);
-    stn->receive(temp_can_buffer,4);
-
-    
-    new_can_flag = true;
-
 }
 
 

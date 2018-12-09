@@ -81,7 +81,6 @@ int CAN::receive(unsigned char* buffer, int number_bytes_to_write)
           
 
     }
-    Serial.println();
     return 1;
 }
 

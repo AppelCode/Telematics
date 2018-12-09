@@ -25,14 +25,14 @@ extern void server_thread_function(void);   //MQTT thread
 
 /////////////////////////////////////////////////////////////////
 extern void CAN_function();
-extern unsigned char temp_can_buffer[64];
+extern unsigned char temp_can_buffer[64][16];
 /////////////////////////////////////////////////////////////////
 
 
 ///////////////////////////////////////////////////////////////////
-extern void internal_function();
-extern float temp_dof_buffer[10];   //temp buffer to store dof data
-extern float temp_gps_buffer[3];   //temp buffer to store gps data
+extern void internal_function(int &record_num, unsigned char setting);
+extern float temp_dof_buffer[64][10];   //temp buffer to store dof data
+extern float temp_gps_buffer[64][3];   //temp buffer to store gps data
 /////////////////////////////////////////////////////////////////
 
 extern system_tick_t lastThreadTime;        //used for thread timing if needed
@@ -82,3 +82,16 @@ extern Crypt* secretStuff;
 
 extern void callback(char* topic, byte* payload, unsigned int length);
 extern AWS* awsiot;
+
+
+/*
+*
+*   work on settings for custom data collection
+*
+*/
+
+extern unsigned char internal_settings;
+#define DEFAULT_INTERNAL 0  //gps lat and lon and all 9dof
+
+extern unsigned char can_settings;
+#define DEFAULT_CAN 0       //rpm and speed readings
