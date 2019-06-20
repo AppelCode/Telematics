@@ -24,8 +24,8 @@ extern void server_thread_function(void);   //MQTT thread
 
 
 /////////////////////////////////////////////////////////////////
-extern void CAN_function();
-extern unsigned char temp_can_buffer[64][16];
+extern void CAN_function(char** pid_list,int num_pids,int &can_records);
+extern unsigned char temp_can_buffer[100][16];
 /////////////////////////////////////////////////////////////////
 
 
@@ -95,3 +95,19 @@ extern unsigned char internal_settings;
 
 extern unsigned char can_settings;
 #define DEFAULT_CAN 0       //rpm and speed readings
+
+/*
+ * Diagnostic PID macros
+*/
+
+#define PID_ENGINE_LOAD "0104"
+#define PID_THROTTLE_POSITION "0111"
+#define PID_FUEL_TANK "012F"
+#define PID_MAP "010B"
+#define PID_SPEED "010C"
+#define PID_RPM "010D"
+#define PID_TIMING_ADVANCE "010E"
+#define PID_ENGINE_FUEL_RATE "015E"
+#define PID_ENGINE_REFERENCE_TORQUE "0163"
+#define PID_ACTUAL_GEAR "01A4"
+

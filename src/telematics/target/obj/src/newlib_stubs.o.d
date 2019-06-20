@@ -1,4 +1,4 @@
-d:/CAR/TelematicsLocal/CybeSe/Telematics/src/telematics/target//obj/src/newlib_stubs.o: \
+C:/Users/appel.60a/Documents/TCU/Telematics/src/telematics/target//obj/src/newlib_stubs.o: \
  src/newlib_stubs.cpp \
  c:\program\ files\ (x86)\gnu\ tools\ arm\ embedded\5.3\ 2016q1\arm-none-eabi\include\sys\types.h \
  c:\program\ files\ (x86)\gnu\ tools\ arm\ embedded\5.3\ 2016q1\arm-none-eabi\include\_ansi.h \

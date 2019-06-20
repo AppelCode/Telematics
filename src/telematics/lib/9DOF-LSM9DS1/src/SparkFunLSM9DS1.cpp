@@ -983,14 +983,15 @@ void LSM9DS1::xgWriteByte(uint8_t subAddress, uint8_t data)
 		SPIwriteByte(_xgAddress, subAddress, data);
 }
 
-void LSM9DS1::mWriteByte(uint8_t subAddress, uint8_t data)
+uint8_t LSM9DS1::mWriteByte(uint8_t subAddress, uint8_t data)
 {
 	// Whether we're using I2C or SPI, write a byte using the
 	// accelerometer-specific I2C address or SPI CS pin.
 	if (settings.device.commInterface == IMU_MODE_I2C)
-		return I2CwriteByte(_mAddress, subAddress, data);
+		I2CwriteByte(_mAddress, subAddress, data);
 	else if (settings.device.commInterface == IMU_MODE_SPI)
-		return SPIwriteByte(_mAddress, subAddress, data);
+		SPIwriteByte(_mAddress, subAddress, data);
+	return 0;
 }
 
 uint8_t LSM9DS1::xgReadByte(uint8_t subAddress)

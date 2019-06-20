@@ -1,4 +1,5 @@
 #include "CAN.h"
+#include "CarT_declerations.h"
 #include "Serial5/Serial5.h"
 
 
@@ -40,6 +41,23 @@ void CAN::GetSpeed()
     Serial5.println("010D");
     Serial5.flush();
 
+}
+
+int CAN::GetPID(char** pid_requests,int num_requests,int current_record_count)
+{
+	clearBuffer();
+	for(int i = 0; i < num_requests; i++)
+	{
+		char* current_request = pid_requests[i];
+		Serial5.println(current_request);
+		Serial5.flush();
+		delay(50);
+		stn->receive(temp_can_buffer[current_record_count],4);
+		if(temp_can_buffer[current_record_count][0] != 0){
+			  current_record_count++;
+		}
+	}
+	return current_record_count;
 }
 
 

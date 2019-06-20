@@ -10,6 +10,7 @@ class CAN
         void SetHS();
         void GetRPM();
         void GetSpeed();
+        int GetPID(char**,int,int);
         void monitorCAN();
         void ClearFlowControl();
         void SendFrame(int header, int message);

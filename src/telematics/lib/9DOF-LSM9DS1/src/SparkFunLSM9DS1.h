@@ -314,7 +314,7 @@ protected:
 	// Input:
 	//	- subAddress = Register to be written to.
 	//	- data = data to be written to the register.
-	void mWriteByte(uint8_t subAddress, uint8_t data);
+	uint8_t mWriteByte(uint8_t subAddress, uint8_t data);
 	
 	// xmReadByte() -- Read a byte from a register in the accel/mag sensor
 	// Input:

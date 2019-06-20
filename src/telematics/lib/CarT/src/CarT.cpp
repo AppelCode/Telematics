@@ -34,7 +34,7 @@ os_mutex_t mqtt_recv_mutex;
 os_mutex_t mqtt_send_mutex; 
 
 
-unsigned char temp_can_buffer[64][16] = {0};
+unsigned char temp_can_buffer[100][16] = {0};
 float temp_dof_buffer[64][10] = {0};
 float temp_gps_buffer[64][3] = {0};
 /*
@@ -114,10 +114,11 @@ void server_thread_function(void) {
   
     while(!Cellular.ready());           //wait for cell connection
     awsiot->connect("sparkclient");     //setup AWS connection
-        if (awsiot->isConnected()) {        
-            awsiot->publish("outTopic/message", "hello world"); //send hello world confirmation
-            awsiot->subscribe("inTopic/message");               //subscribe to topic to recv messages
-        }   
+	if (awsiot->isConnected()) {
+		awsiot->publish("outTopic/message", "hello world"); //send hello world confirmation
+		awsiot->subscribe("inTopic/message");               //subscribe to topic to recv messages
+	}
+
 	while(true) { 
         //check for any new recieve messages      
         os_mutex_lock(mqtt_mutex);                 //grab lock    
@@ -128,7 +129,6 @@ void server_thread_function(void) {
 
         os_thread_delay_until(&lastThreadTime, 10);     //delay thread
 	} 
-
 }
 
 void createMutexs(){
@@ -210,7 +210,9 @@ void internal_function(int &record_num, unsigned char setting){
     temp_dof_buffer[record_num][8] = dof->MZ;
 }
 
-void CAN_function(){
+void CAN_function(char** pid_list,int num_pids,int& can_records){
+	can_records = stn->GetPID(pid_list,num_pids,can_records);
+
 }
 
 

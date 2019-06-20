@@ -81,7 +81,7 @@ sample code bearing this copyright.
 
 // MQTT_MAX_PACKET_SIZE : Maximum packet size
 // this size is total of [MQTT Header(Max:5byte) + Topic Name Length + Topic Name + Message ID(QoS1|2) + Payload]
-#define MQTT_MAX_PACKET_SIZE 255
+#define MQTT_MAX_PACKET_SIZE 1000
 
 // MQTT_KEEPALIVE : keepAlive interval in Seconds
 #define MQTT_DEFAULT_KEEPALIVE 15
